@@ -1,0 +1,157 @@
+<skill>
+<name>llxml-auditing</name>
+<desc>
+Use when verifying LLXML coverage against source documentation. Methodology for
+identifying gaps between what's documented in LLXML and what exists in source.
+</desc>
+
+<tools>
+- Source documentation (PLAN.md, README, docs/)
+- LLXML specification files
+- grep/ripgrep for searching
+</tools>
+
+<audit_process>
+<step_1>
+Identify source of truth:
+- PLAN.md for project requirements
+- README for library usage
+- docs/ for detailed documentation
+- Source code for implementation details
+</step_1>
+
+<step_2>
+Extract all documentable items from source:
+- Features and capabilities
+- Data types and structures
+- Workflows and processes
+- Constraints and requirements
+- Integration patterns
+- Generated files warnings
+</step_2>
+
+<step_3>
+Compare against LLXML coverage:
+For each item, determine status:
+- Covered: Fully documented in LLXML
+- Partial: Mentioned but incomplete
+- Missing: Not in LLXML at all
+</step_3>
+
+<step_4>
+Document findings:
+Create audit report with:
+- Item name
+- Source location
+- LLXML location (if any)
+- Coverage status
+- Notes on gaps
+</step_4>
+
+<step_5>
+Prioritize gaps:
+- Critical: Core functionality missing
+- Important: Key workflows incomplete
+- Minor: Nice-to-have details
+</step_5>
+</audit_process>
+
+<status_categories>
+<covered>
+Item is fully documented in LLXML with:
+- Accurate description
+- Complete details
+- Correct location
+- Up-to-date information
+</covered>
+
+<partial>
+Item exists in LLXML but:
+- Missing important details
+- Outdated information
+- Incomplete workflow
+- Lacks examples
+</partial>
+
+<missing>
+Item not in LLXML at all:
+- No mention anywhere
+- Referenced but not defined
+- Exists only in source
+</missing>
+</status_categories>
+
+<audit_report_format>
+```markdown
+# LLXML Audit Report
+
+## Summary
+- Total items: N
+- Covered: X
+- Partial: Y
+- Missing: Z
+
+## Findings
+
+### Covered Items
+| Item | Source | LLXML Location |
+|------|--------|----------------|
+| Feature A | PLAN.md:45 | META/spec/app.xml:<features> |
+
+### Partial Coverage
+| Item | Source | LLXML Location | Gap |
+|------|--------|----------------|-----|
+| Workflow B | docs/USAGE.md | META/spec/app.xml:<workflow> | Missing step 3 |
+
+### Missing Items
+| Item | Source | Priority | Notes |
+|------|--------|----------|-------|
+| Feature C | PLAN.md:78 | Critical | Core functionality |
+```
+</audit_report_format>
+
+<blind_audit>
+For unbiased coverage assessment:
+
+1. Read ONLY the source documentation first
+2. Extract all items without looking at LLXML
+3. Then compare against LLXML
+4. This prevents confirmation bias
+
+The auditor should not have written the LLXML being audited.
+</blind_audit>
+
+<common_gaps>
+<library_specific>
+Often missing from app specs:
+- Library workflow details
+- Generated files warnings
+- Integration patterns
+- Error handling
+</library_specific>
+
+<process_gaps>
+Often incomplete:
+- Step-by-step workflows
+- Decision points
+- Error recovery
+- Edge cases
+</process_gaps>
+
+<type_gaps>
+Often missing:
+- Nested type definitions
+- Enum variants
+- Optional field semantics
+- Map key/value types
+</type_gaps>
+</common_gaps>
+
+<resolution>
+After audit, address gaps by:
+1. Creating missing library specs (if library-specific)
+2. Updating app spec with missing features
+3. Adding missing skills/rules
+4. Referencing library specs via `<deps>` section
+</resolution>
+</skill>

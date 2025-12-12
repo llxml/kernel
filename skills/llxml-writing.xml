@@ -1,0 +1,176 @@
+<skill>
+<name>llxml-writing</name>
+<desc>
+Use when creating or updating LLXML specification files. Covers methodology for
+extracting knowledge from projects into structured LLXML specs.
+</desc>
+
+<tools>
+- LLXML.md format specification
+- Project source code and documentation
+- Existing LLXML files for reference
+</tools>
+
+<file_types>
+<app>
+Architecture spec for a deliverable application - something you run.
+Use for: desktop apps, web apps, mobile apps, CLI tools, servers.
+</app>
+
+<library>
+Architecture spec for a shared dependency - something you consume.
+Use for: crates, npm packages, shared utilities, frameworks.
+</library>
+
+<skill>
+Teachable process or capability - something an LLM can learn to do.
+Use for: workflows, procedures, methodologies, techniques.
+</skill>
+
+<rules>
+Coding conventions and constraints - how to write code in this context.
+Use for: style guides, testing conventions, patterns, anti-patterns.
+</rules>
+
+<ref>
+External reference material - read-only knowledge you study but don't own.
+Use for: cloned repos, example code, patterns to copy from.
+</ref>
+</file_types>
+
+<extraction_process>
+<step_1>
+Identify the file type needed:
+- Is it something you run? -> `<app>`
+- Is it something you consume? -> `<library>`
+- Is it a process to follow? -> `<skill>`
+- Is it coding conventions? -> `<rules>`
+- Is it external code to study? -> `<ref>`
+</step_1>
+
+<step_2>
+Gather source material:
+- README files
+- Documentation directories (docs/, doc/)
+- PLAN.md or similar planning docs
+- Source code for actual implementation details
+- Existing specs or architecture docs
+</step_2>
+
+<step_3>
+Extract core information:
+- Name and mission/description
+- Technology stack
+- Key features/capabilities
+- Data types and structures
+- Workflows and processes
+- Constraints and requirements
+</step_3>
+
+<step_4>
+Structure using LLXML conventions:
+- Group types by domain, not flat lists
+- Name each data flow diagram
+- Group features by area
+- Use terse tag names
+- Include code snippets where helpful
+</step_4>
+
+<step_5>
+Validate against source:
+- Does the spec reflect actual implementation?
+- Are all key features captured?
+- Are constraints and non-goals clear?
+- Is the workflow accurate?
+</step_5>
+</extraction_process>
+
+<structure_guidelines>
+<types>
+Group types by domain, not in a single flat block:
+
+```xml
+<types>
+<users>
+struct User { ... }
+struct UserStatus { ... }
+</users>
+
+<sessions>
+struct Session { ... }
+struct SessionToken { ... }
+</sessions>
+</types>
+```
+</types>
+
+<data_flow>
+Name each diagram descriptively:
+
+```xml
+<data_flow>
+<authentication_flow>
+```mermaid
+sequenceDiagram
+    ...
+```
+</authentication_flow>
+</data_flow>
+```
+</data_flow>
+
+<features>
+Group by domain, not flat lists:
+
+```xml
+<features>
+<recording>
+- Audio capture
+- Noise reduction
+</recording>
+
+<transcription>
+- Whisper integration
+- Real-time streaming
+</transcription>
+</features>
+```
+</features>
+</structure_guidelines>
+
+<type_notation>
+Use LLXML's terse type syntax:
+- `str` not `String`
+- `field?: type` for optional (not `Option<T>`)
+- `items: Item[]` for arrays (not `Vec<T>`)
+- `map: str -> Value` for maps (not `HashMap<K, V>`)
+- Never use Rust memory types (Arc, Box, Cow, etc.)
+</type_notation>
+
+<common_mistakes>
+<avoid>
+- Flat type lists without domain grouping
+- Unnamed data flow diagrams
+- Aspirational content not in source code
+- Rust-specific memory types in type definitions
+- Verbose tag names (`<technology_stack>` vs `<stack>`)
+- XML attributes (use nested elements instead)
+</avoid>
+</common_mistakes>
+
+<meta_vs_source>
+<meta>
+Goes in META/ directory (dev-time, not shipped):
+- Architecture specs (`<app>`, `<library>`)
+- Project-specific skills and rules
+- Objectives and logs
+</meta>
+
+<source>
+Goes in source code (shipped when vendored):
+- Consumer-facing skills ("how to use this library")
+- Rules for consumers
+- Documentation that travels with the code
+</source>
+</meta_vs_source>
+</skill>
