@@ -30,7 +30,8 @@ A harness scans configured roots for `ll.xml` manifests.
 │   ├── skills/           # Project-specific skills
 │   ├── tickets/          # Ticket workflow directories
 │   ├── mail/             # Async message queue
-│   └── logs/             # Development logs
+│   ├── logs/             # Development logs (devlogs)
+│   └── reflection/       # Concept development
 └── ctx/                  # Assembled context output
 ```
 </project_layout>

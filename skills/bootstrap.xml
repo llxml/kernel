@@ -43,7 +43,7 @@ This is the fixed point. Everything else grows from it.
 
 <step n="2" name="create-project-structure">
 ```bash
-mkdir -p myproject/{main,META/{spec,skills,tickets/{todo,in-progress,review,done},mail/{inbox,read,trash},reflection},ctx}
+mkdir -p myproject/{main,META/{spec,skills,tickets/{todo,in-progress,review,done},mail/{inbox,read,trash},logs,reflection},ctx}
 cd myproject/main && git init
 ```
 
@@ -57,6 +57,7 @@ myproject/
 │   ├── skills/         # Project-specific skills
 │   ├── tickets/        # Task workflow
 │   ├── mail/           # Async message queue
+│   ├── logs/           # Development logs (devlogs)
 │   └── reflection/     # Concept development
 └── ctx/                # Assembled context
 ```
@@ -87,6 +88,8 @@ Current state of development.
 </status>
 </backstage>
 ```
+
+Note: `<backstage>` has no `name` or `v` attributes - it's scaffolding outside the LLXML type system, not a versioned document. Add whatever sections help you think about your project.
 </step>
 
 <step n="5" name="build-harness">
