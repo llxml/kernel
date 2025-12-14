@@ -61,6 +61,21 @@ mv ../META/tickets/review/{slug}.md ../META/tickets/done/
 ```
 </lifecycle>
 
+<file_movement>
+**CRITICAL**: Tickets must exist in exactly ONE directory at a time.
+
+Use `mv` (move), never `cp` (copy). After moving:
+1. Verify file exists in new location
+2. Verify file is GONE from old location
+
+```bash
+mv META/tickets/todo/{slug}.md META/tickets/in-progress/
+ls META/tickets/todo/{slug}.md  # should fail: No such file
+```
+
+Duplicate tickets across stages = corrupted state.
+</file_movement>
+
 <addendums>
 **Ticket Addendum** — scope expansion before review submission:
 ```markdown

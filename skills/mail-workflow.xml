@@ -38,7 +38,13 @@ One topic per item. Split if too big.
 1. Read and understand
 2. Decide: ticket, quick-fix, defer, or discard
 3. Take action
-4. Move to `read/` or `trash/` with disposition
+4. **Move** (not copy) to `read/` or `trash/` with disposition
+
+**CRITICAL**: Use `mv`, never `cp`. Item must exist in exactly ONE directory.
+```bash
+mv META/mail/inbox/{item}.md META/mail/read/
+ls META/mail/inbox/{item}.md  # should fail: No such file
+```
 
 When moving to `read/`, append:
 ```markdown
