@@ -52,7 +52,7 @@ cd ../_{slug} && git submodule update --init --recursive
 
 **Merge** (on human approval):
 ```bash
-cd _{slug} && cargo test && pnpm test      # verify
+cd _{slug} && <run-tests>                   # verify (project-specific test command)
 git rebase -i main                          # squash commits
 cd ../main && git merge {slug} --ff-only   # merge
 rm -rf ../_{slug} && git worktree prune    # cleanup worktree

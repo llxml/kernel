@@ -1,23 +1,21 @@
-<skill name="project-structure" v="2">
-<desc>Understanding the development environment directory layout and library sharing workflow</desc>
+<skill name="project-structure" v="3">
+<desc>Directory layout, worktrees, and library sharing</desc>
 
 <overview>
-Development is organized under one or more dev roots, each containing projects grouped by type. Each project has a git repository (`main/`) with optional worktrees for parallel development. Libraries are shared via kernel worktrees.
+Development is organized under dev roots containing projects grouped by type. Each project has a git repository (`main/`) with optional worktrees for parallel development. Libraries are shared via kernel worktrees.
 </overview>
 
-<directories>
 <dev_root>
 A dev root is a directory containing project categories:
 
 ```
 <dev-root>/
 ├── apps/                 # Full applications
-├── rust/                 # Rust libraries
-├── web/                  # Web/JS libraries
+├── libs/                 # Shared libraries
 └── ...                   # Other project types
 ```
 
-You can have multiple dev roots. A harness (like Loom) scans configured roots for `ll.xml` manifests.
+A harness scans configured roots for `ll.xml` manifests.
 </dev_root>
 
 <project_layout>
@@ -30,38 +28,54 @@ You can have multiple dev roots. A harness (like Loom) scans configured roots fo
 ├── META/                 # Shared across worktrees, dev-time only
 │   ├── spec/             # Architecture specs (<app>, <library>)
 │   ├── skills/           # Project-specific skills
-│   ├── rules/            # Project-specific rules
 │   ├── tickets/          # Ticket workflow directories
+│   ├── mail/             # Async message queue
 │   └── logs/             # Development logs
 └── ctx/                  # Assembled context output
 ```
 </project_layout>
-</directories>
+
+<worktrees>
+Git worktrees allow multiple working directories from a single repository.
+
+- `main/` is the **actual git repository** (contains `.git/` directory)
+- Worktrees (`_feature-x/`) are lightweight checkouts that reference `main/.git`
+- Worktrees are ephemeral - created for tickets, removed after merge
+- `main/` is permanent - worktrees depend on it
+
+<creating>
+From project root:
+```bash
+cd main && git worktree add ../_{name} -b {name}
+```
+
+Creates branch `{name}` and directory `_{name}/` with that branch checked out.
+</creating>
+
+<removing>
+After review and merge:
+```bash
+git worktree remove _{name}
+```
+</removing>
+</worktrees>
 
 <library_workflow>
-<development>
-Libraries follow the same project layout. The `main/` directory is the git repository.
-</development>
-
 <publishing>
-Libraries have a `kernel` worktree for vendoring. "Publishing" is merging main to stable:
+Libraries have a `kernel` worktree for vendoring. "Publishing" = merging main to stable:
 ```bash
-cd <library-root>
 git -C kernel merge main
 ```
 </publishing>
 
 <consuming>
-Projects vendor from the kernel worktree using the `vnd` script or manual submodule commands:
+Projects vendor from the kernel worktree:
 ```bash
-vnd add rust/http_api
+cd main
+git submodule add file://<library-root>/kernel vendor/<name>
 ```
 
-Then reference in your build config (e.g., Cargo.toml):
-```toml
-[workspace.dependencies]
-http_api = { path = "vendor/http_api" }
-```
+Then reference in your build config: `vendor/<name>/`
 </consuming>
 </library_workflow>
 

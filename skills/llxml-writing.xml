@@ -5,7 +5,7 @@ extracting knowledge from projects into structured LLXML specs.
 </desc>
 
 <tools>
-- LLXML.md format specification
+- self.xml format specification
 - Project source code and documentation
 - Existing LLXML files for reference
 </tools>
@@ -160,7 +160,7 @@ Use LLXML's terse type syntax:
 </common_mistakes>
 
 <meta_vs_source>
-Loom scans both META and source for LLXML files. The location determines shipping behavior:
+A harness scans both META and source for LLXML files. The location determines shipping behavior:
 
 <meta>
 Goes in META/ directory (dev-time, not shipped):
@@ -179,7 +179,7 @@ When a project is vendored, only source LLXML files come along. META stays with 
 </source>
 
 <vendor>
-Loom also scans vendor/ directories in worktrees:
+A harness may also scan vendor/ directories in worktrees:
 - Discovers LLXML files from vendored dependencies
 - These are read-only (owned by the dependency)
 - Useful for understanding how to use vendored libraries

@@ -1,0 +1,2 @@
+The language of a language that can describe and improve itself.
+Any implementation satisfying this principle is valid.

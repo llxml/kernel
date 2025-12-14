@@ -17,7 +17,7 @@ Examples:
 <style>
 - Write for an expert audience
 - Be concise but capture important details
-- Include file references with line numbers: `main/src/relay/mod.rs:42`
+- Include file references with line numbers: `main/src/module/file.ext:42`
 - Use mermaid diagrams where they add clarity
 - No fluff or preamble
 </style>
@@ -28,8 +28,8 @@ Examples:
 One paragraph describing what was accomplished.
 
 # Changes
-- `main/crate/file.rs` - What changed and why
-- `main/another/file.rs:123` - Specific line reference
+- `main/src/module/file.ext` - What changed and why
+- `main/src/other/file.ext:123` - Specific line reference
 
 # Architecture Decisions
 Why certain approaches were chosen over alternatives.
