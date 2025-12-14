@@ -90,7 +90,7 @@ Then reference in your build config: `vendor/<name>/`
 <naming_conventions>
 - Project root: `<dev-root>/<type>/<name>/`
 - Git repository: `<project-root>/main/`
-- Stable branch: `stable` (or `kernel/` worktree for some projects)
+- Stable branch: `stable`
 - Feature worktrees: `<project-root>/_feature-name/`
 - Vendor submodule: `main/vendor/<name>/`
 </naming_conventions>

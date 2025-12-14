@@ -2,7 +2,7 @@
 <desc>Managing shared library dependencies via git submodules in vendor/</desc>
 
 <overview>
-Libraries follow the standard project layout with `main/` (git repo) and `stable/` (branch for vendoring). Consumer projects add submodules pointing to the stable branch. Some projects use a `kernel/` worktree instead of `stable/` - the pattern is the same.
+Libraries follow the standard project layout with `main/` (git repo) and `stable/` (branch for vendoring). Consumer projects add submodules pointing to the stable branch.
 </overview>
 
 <tools>
@@ -15,7 +15,7 @@ Libraries are expected at configured paths:
 ```
 <library-root>/
 ├── main/                   # Git repository
-└── stable/                 # Stable branch (or kernel/ worktree)
+└── stable/                 # Stable branch for vendoring
 ```
 
 Submodule URLs use `file://` protocol pointing to the stable branch or worktree.

@@ -1,17 +1,37 @@
-<skill name="bootstrap" v="1">
-<desc>Setting up a new LLXML environment from scratch</desc>
+<skill name="bootstrap" v="2">
+<desc>Regenerating a full development environment from just the kernel</desc>
+
+<philosophy>
+The kernel is the portable, self-contained seed. Everything else emerges.
+
+Given:
+  - The kernel (zip, submodule, or clone)
+  - An LLM
+  - Minimal prompt guidance
+
+You can regenerate:
+  - The META structure (tickets, mail, reflection, logs)
+  - A backstage.xml tailored to your project
+  - The full meta-development workflow
+
+The kernel ships. The environment emerges. This is by design—the kernel
+must be sufficient for anyone to bootstrap their own development process.
+</philosophy>
 
 <overview>
-Bootstrap creates a working LLXML project from the seed. The seed is the philosophical anchor; the project structure is the implementation.
+Bootstrap creates a working LLXML project from the kernel. The kernel
+contains the self-specification and skills; the project structure and
+backstage context emerge from working with it.
 
 Prerequisites:
 - Git installed
+- The LLXML kernel (or just the seed philosophy)
 - A directory for your project
 </overview>
 
 <steps>
 <step n="1" name="get-the-seed">
-The seed lives at `kernel/seed.txt` in any LLXML distribution:
+The seed lives at `seed.txt` in any LLXML distribution:
 
 ```
 The language of a language that can describe and improve itself.
@@ -78,6 +98,8 @@ git submodule add file:///path/to/llxml/kernel vendor/llxml
 ```
 
 Then reference skills from `vendor/llxml/skills/`.
+
+Note: LLXML uses `kernel` as its stable branch name (because it *is* the kernel). Your projects should use `stable`.
 </step>
 </steps>
 
@@ -93,4 +115,31 @@ mkdir -p META/tickets/{todo,in-progress,review,done}
 
 Add structure as needed.
 </minimal_bootstrap>
+
+<llm_bootstrap>
+With an LLM, you can bootstrap interactively:
+
+1. Give the LLM the kernel (vendor/llxml or a zip)
+2. Prompt: "Read the LLXML kernel. Help me set up a new project called X."
+3. The LLM reads self.xml and skills, then guides you through setup
+4. Together you create META/backstage.xml tailored to your project
+5. The development environment emerges from conversation
+
+The kernel teaches the LLM how to help you. No external documentation needed.
+</llm_bootstrap>
+
+<kernel_sufficiency>
+The kernel is designed to be self-sufficient for regeneration:
+
+- self.xml defines the format (what tags mean)
+- skills/ defines the processes (how to work)
+- seed.txt anchors the philosophy (why it exists)
+
+Everything else—backstage, tickets, mail, reflection—these are patterns
+that emerge from applying the skills. They're not prescribed; they're
+discovered through use.
+
+Different teams may evolve different META structures. That's valid.
+The kernel enables; it doesn't constrain.
+</kernel_sufficiency>
 </skill>
