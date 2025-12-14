@@ -2,7 +2,7 @@
 <desc>Directory layout, worktrees, and library sharing</desc>
 
 <overview>
-Development is organized under dev roots containing projects grouped by type. Each project has a git repository (`main/`) with optional worktrees for parallel development. Libraries are shared via kernel worktrees.
+Development is organized under dev roots containing projects grouped by type. Each project has a git repository (`main/`) with optional worktrees for parallel development. Libraries are shared via stable branches.
 </overview>
 
 <dev_root>
@@ -23,7 +23,7 @@ A harness scans configured roots for `ll.xml` manifests.
 <project-root>/           # Operate from here
 ├── ll.xml                # Project manifest (signals "this is LLXML")
 ├── main/                 # THE git repository (has .git/)
-├── kernel/               # Stable branch worktree (for vendoring, optional)
+├── stable/               # Stable branch (for vendoring, optional)
 ├── _feature-x/           # Feature worktrees (underscore prefix)
 ├── META/                 # Shared across worktrees, dev-time only
 │   ├── spec/             # Architecture specs (<app>, <library>)
@@ -62,17 +62,17 @@ git worktree remove _{name}
 
 <library_workflow>
 <publishing>
-Libraries have a `kernel` worktree for vendoring. "Publishing" = merging main to stable:
+Libraries use a `stable` branch for vendoring. "Publishing" = merging main to stable:
 ```bash
-git -C kernel merge main
+cd main && git checkout stable && git merge main && git checkout main
 ```
 </publishing>
 
 <consuming>
-Projects vendor from the kernel worktree:
+Projects vendor from the stable branch:
 ```bash
 cd main
-git submodule add file://<library-root>/kernel vendor/<name>
+git submodule add file://<library-root>/stable vendor/<name>
 ```
 
 Then reference in your build config: `vendor/<name>/`
@@ -90,7 +90,7 @@ Then reference in your build config: `vendor/<name>/`
 <naming_conventions>
 - Project root: `<dev-root>/<type>/<name>/`
 - Git repository: `<project-root>/main/`
-- Kernel worktree: `<project-root>/kernel/`
+- Stable branch: `stable` (or `kernel/` worktree for some projects)
 - Feature worktrees: `<project-root>/_feature-name/`
 - Vendor submodule: `main/vendor/<name>/`
 </naming_conventions>

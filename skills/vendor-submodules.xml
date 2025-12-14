@@ -2,7 +2,7 @@
 <desc>Managing shared library dependencies via git submodules in vendor/</desc>
 
 <overview>
-Libraries follow the standard project layout with `main/` (git repo) and `kernel/` (worktree for vendoring). Consumer projects add submodules pointing to kernel worktrees.
+Libraries follow the standard project layout with `main/` (git repo) and `stable/` (branch for vendoring). Consumer projects add submodules pointing to the stable branch. Some projects use a `kernel/` worktree instead of `stable/` - the pattern is the same.
 </overview>
 
 <tools>
@@ -15,22 +15,19 @@ Libraries are expected at configured paths:
 ```
 <library-root>/
 ├── main/                   # Git repository
-└── kernel/                 # Worktree for vendoring
+└── stable/                 # Stable branch (or kernel/ worktree)
 ```
 
-Submodule URLs use `file://` protocol pointing to the kernel worktree.
+Submodule URLs use `file://` protocol pointing to the stable branch or worktree.
 </library_locations>
 
 <adding_vendor>
 ```bash
 cd main
-git submodule add file://<library-root>/kernel vendor/<name>
+git submodule add file://<library-root>/stable vendor/<name>
 ```
 
-Example:
-```bash
-git submodule add file:///home/dev/libs/mylib/kernel vendor/mylib
-```
+Replace `<library-root>` with the absolute path to the library on your machine.
 </adding_vendor>
 
 <build_integration>
@@ -50,11 +47,10 @@ Avoid:
 <library_requirements>
 For a library to be vendorable:
 
-1. Must have kernel worktree:
+1. Must have a stable branch:
 ```bash
 cd <library-root>/main
 git branch stable
-git worktree add ../kernel stable
 ```
 
 2. Library must be self-contained - no references to parent workspace configs or paths that won't exist when vendored.
@@ -63,10 +59,9 @@ git worktree add ../kernel stable
 <publishing>
 "Publishing" = merging main to stable:
 ```bash
-cd <library-root>/kernel
-git merge main
+cd <library-root>/main
+git checkout stable && git merge main && git checkout main
 ```
-Or: `git -C kernel merge main`
 </publishing>
 
 <updating_vendor>

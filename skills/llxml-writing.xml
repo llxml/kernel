@@ -49,9 +49,9 @@ Identify the file type needed:
 
 <step_2>
 Gather source material:
-- README files
+- README, CLAUDE.md, or similar project docs
 - Documentation directories (docs/, doc/)
-- PLAN.md or similar planning docs
+- Planning docs, architecture notes, design files
 - Source code for actual implementation details
 - Existing specs or architecture docs
 </step_2>
