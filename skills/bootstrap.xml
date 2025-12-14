@@ -1,141 +1,110 @@
-<skill name="bootstrap" v="2">
-<desc>Regenerating a full development environment from just the kernel</desc>
-
-<philosophy>
-The kernel is the portable, self-contained seed. Everything else emerges.
-
-Given:
-  - The kernel (zip, submodule, or clone)
-  - An LLM
-  - Minimal prompt guidance
-
-You can regenerate:
-  - The META structure (tickets, mail, reflection, logs)
-  - A backstage.xml tailored to your project
-  - The full meta-development workflow
-
-The kernel ships. The environment emerges. This is by design—the kernel
-must be sufficient for anyone to bootstrap their own development process.
-</philosophy>
+<skill name="bootstrap" v="3">
+<desc>Transform the kernel into a full development environment</desc>
 
 <overview>
-Bootstrap creates a working LLXML project from the kernel. The kernel
-contains the self-specification and skills; the project structure and
-backstage context emerge from working with it.
+Bootstrap transforms an extracted kernel into a complete dev environment with:
+- LLXML kernel in development mode (dev/llxml/)
+- A starter harness project (dev/apps/saddle/)
 
-Prerequisites:
-- Git installed
-- The LLXML kernel (or just the seed philosophy)
-- A directory for your project
+After bootstrap, you can develop the kernel itself and build projects using it.
 </overview>
 
+<result>
+```
+dev/
+├── llxml/                    # Kernel in dev mode
+│   ├── ll.xml
+│   ├── main/                 # Git repo (kernel source)
+│   ├── kernel/               # Stable branch worktree
+│   ├── META/
+│   │   ├── backstage.xml     # Kernel design context
+│   │   ├── tickets/{todo,in-progress,review,done}/
+│   │   ├── mail/{inbox,read,trash}/
+│   │   ├── logs/
+│   │   └── reflection/
+│   └── ctx/
+└── apps/
+    └── saddle/               # Starter harness project
+        ├── ll.xml
+        ├── main/             # Git repo
+        ├── META/
+        │   ├── spec/
+        │   ├── tickets/{todo,in-progress,review,done}/
+        │   └── mail/{inbox,read,trash}/
+        └── ctx/
+```
+</result>
+
 <steps>
-<step n="1" name="get-the-seed">
-The seed lives at `seed.txt` in any LLXML distribution:
-
-```
-The language of a language that can describe and improve itself.
-Any implementation satisfying this principle is valid.
-```
-
-This is the fixed point. Everything else grows from it.
-</step>
-
-<step n="2" name="create-project-structure">
+<step n="1" name="create-dev-structure">
 ```bash
-mkdir -p myproject/{main,META/{spec,skills,tickets/{todo,in-progress,review,done},mail/{inbox,read,trash},logs,reflection},ctx}
-cd myproject/main && git init
-```
-
-Structure:
-```
-myproject/
-├── ll.xml              # Manifest (create empty or with project name)
-├── main/               # Git repository
-├── META/               # Dev-time knowledge (not in git)
-│   ├── spec/           # Architecture specs
-│   ├── skills/         # Project-specific skills
-│   ├── tickets/        # Task workflow
-│   ├── mail/           # Async message queue
-│   ├── logs/           # Development logs (devlogs)
-│   └── reflection/     # Concept development
-└── ctx/                # Assembled context
+mkdir -p dev/{llxml,apps/saddle}
 ```
 </step>
 
-<step n="3" name="create-manifest">
+<step n="2" name="setup-llxml">
 ```bash
-echo '<ll name="myproject" v="0"/>' > ll.xml
+cd dev/llxml
+mv /path/to/extracted/kernel main
+mkdir -p META/{tickets/{todo,in-progress,review,done},mail/{inbox,read,trash},logs,reflection} ctx
+echo '<ll name="llxml" v="5"/>' > ll.xml
+cd main && git init && git add -A && git commit -m "init kernel"
+git branch stable && git worktree add ../kernel stable
 ```
-
-The manifest signals "this is an LLXML project" to tooling.
 </step>
 
-<step n="4" name="setup-backstage">
-Create `META/backstage.xml` for project-level design context:
+<step n="3" name="create-backstage">
+Create `dev/llxml/META/backstage.xml`:
 
 ```xml
 <backstage>
-<desc>Design context for myproject</desc>
+<desc>LLXML kernel development context</desc>
 
-<goals>
-- What this project aims to do
-- Key constraints and decisions
-</goals>
+<what_is_llxml>
+LLXML is a self-describing document format for LLM-assisted development.
+The kernel contains self.xml (format spec) and skills/ (workflows).
+</what_is_llxml>
 
-<status>
-Current state of development.
-</status>
+<current_focus>
+What you're working on now.
+</current_focus>
 </backstage>
 ```
-
-Note: `<backstage>` has no `name` or `v` attributes - it's scaffolding outside the LLXML type system, not a versioned document. Add whatever sections help you think about your project.
 </step>
 
-<step n="5" name="build-harness">
-Build a harness to compile context for your project. The harness reads your project's LLXML files and assembles them into context for LLM sessions.
+<step n="4" name="setup-saddle">
+```bash
+cd dev/apps/saddle
+mkdir -p main META/{spec,tickets/{todo,in-progress,review,done},mail/{inbox,read,trash}} ctx
+echo '<ll name="saddle" v="0"/>' > ll.xml
+cd main && git init
+```
+</step>
 
-The kernel is always available - reference it directly, don't vendor it. See `spec/harness.xml` for a template.
+<step n="5" name="create-saddle-spec">
+Create `dev/apps/saddle/META/spec/saddle.xml`:
+
+```xml
+<app name="saddle" v="0">
+<desc>LLXML context harness - assembles project context for LLM sessions</desc>
+
+<stack>
+TypeScript, Node.js
+</stack>
+
+<features>
+- Scan dev roots for ll.xml manifests
+- Parse LLXML files (app, library, skill, rules, ref)
+- Assemble context by profile
+- Output to ctx/
+</features>
+</app>
+```
+</step>
+
+<step n="6" name="build-harness">
+Read `kernel/spec/harness.xml` for the full harness specification.
+Implement saddle in `dev/apps/saddle/main/src/`.
 </step>
 </steps>
-
-<minimal_bootstrap>
-Absolute minimum to start:
-
-```bash
-mkdir -p myproject/main && cd myproject
-git -C main init
-echo '<ll name="myproject"/>' > ll.xml
-mkdir -p META/tickets/{todo,in-progress,review,done}
-```
-
-Add structure as needed.
-</minimal_bootstrap>
-
-<llm_bootstrap>
-With an LLM, you can bootstrap interactively:
-
-1. Give the LLM the kernel (the seed zip or point it to your kernel path)
-2. Prompt: "Read the LLXML kernel. Help me set up a new project called X."
-3. The LLM reads self.xml and skills, then guides you through setup
-4. Together you create META/backstage.xml tailored to your project
-5. The development environment emerges from conversation
-
-The kernel teaches the LLM how to help you. No external documentation needed.
-</llm_bootstrap>
-
-<kernel_sufficiency>
-The kernel is designed to be self-sufficient for regeneration:
-
-- self.xml defines the format (what tags mean)
-- skills/ defines the processes (how to work)
-- seed.txt anchors the philosophy (why it exists)
-
-Everything else—backstage, tickets, mail, reflection—these are patterns
-that emerge from applying the skills. They're not prescribed; they're
-discovered through use.
-
-Different teams may evolve different META structures. That's valid.
-The kernel enables; it doesn't constrain.
-</kernel_sufficiency>
 </skill>

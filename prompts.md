@@ -1,23 +1,18 @@
 # Bootstrap Prompt
 
-Copy and paste this into your LLM CLI (opencode, Claude, etc.) to bootstrap a new project.
+Copy and paste this into your LLM CLI to bootstrap a dev environment.
 
 ---
 
-Read the LLXML kernel I've provided. You have access to:
-- `seed.txt` - the philosophical anchor
-- `self.xml` - the format specification
-- `skills/` - workflows and processes
-- `spec/harness.xml` - context assembler template
+Read the LLXML kernel I've provided (seed.txt, self.xml, skills/, spec/).
 
-I want to bootstrap a new project called `{PROJECT_NAME}`.
+Follow skills/bootstrap.xml to transform this kernel into a full dev environment:
 
-Follow the bootstrap.xml skill:
-1. Create the project structure (main/, META/, ctx/)
-2. Initialize git in main/
-3. Create the ll.xml manifest
-4. Help me write a META/backstage.xml tailored to my project
+1. Create dev/llxml/ - the kernel in development mode with META structure
+2. Create dev/apps/saddle/ - a starter harness project
+3. Initialize git repos, create manifests, set up backstage.xml
+4. Read spec/harness.xml and implement the saddle harness in TypeScript
 
-My project is: {BRIEF_DESCRIPTION}
+Target directory: {TARGET_DIR}
 
-Start by creating the directory structure, then we'll work on the backstage together.
+Execute the bootstrap steps. Create all files and directories.
