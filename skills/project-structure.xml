@@ -1,5 +1,4 @@
-<skill v="1">
-<name>project-structure</name>
+<skill name="project-structure" v="2">
 <desc>Understanding the development environment directory layout and library sharing workflow</desc>
 
 <overview>

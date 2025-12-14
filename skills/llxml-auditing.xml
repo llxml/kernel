@@ -1,5 +1,4 @@
-<skill v="1">
-<name>llxml-auditing</name>
+<skill name="llxml-auditing" v="2">
 <desc>
 Use when verifying LLXML coverage against source documentation. Methodology for
 identifying gaps between what's documented in LLXML and what exists in source.

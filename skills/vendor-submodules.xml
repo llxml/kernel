@@ -1,5 +1,4 @@
-<skill v="1">
-<name>vendor-submodules</name>
+<skill name="vendor-submodules" v="2">
 <desc>Managing shared library dependencies via git submodules in vendor/</desc>
 
 <overview>

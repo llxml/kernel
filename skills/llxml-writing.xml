@@ -1,5 +1,4 @@
-<skill v="1">
-<name>llxml-writing</name>
+<skill name="llxml-writing" v="2">
 <desc>
 Use when creating or updating LLXML specification files. Covers methodology for
 extracting knowledge from projects into structured LLXML specs.

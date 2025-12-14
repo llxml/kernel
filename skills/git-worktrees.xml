@@ -1,5 +1,4 @@
-<skill v="1">
-<name>git-worktrees</name>
+<skill name="git-worktrees" v="2">
 <desc>Understanding git worktree structure for isolated parallel development</desc>
 
 <overview>

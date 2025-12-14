@@ -1,5 +1,4 @@
-<skill v="1">
-<name>ticket-workflow</name>
+<skill name="ticket-workflow" v="2">
 <desc>Creating and executing tickets - work units bound to feature branches and worktrees</desc>
 
 <overview>

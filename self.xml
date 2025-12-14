@@ -1,4 +1,4 @@
-<self v="3">
+<self v="4">
 <intro>
 LLXML: "LLM XML" - A hybrid XML+Markdown format for AI-assisted development.
 This spec defines itself.
@@ -24,10 +24,12 @@ Six root tags define file types:
 - `<ref>` - External reference material you study but don't own (cloned repos, examples)
 - `<self>` - A spec that defines itself (inception)
 
-All files share a common header:
+All files use `name` and `v` as attributes on the root tag, with `<desc>` as the first child:
 ```xml
-<name>identifier</name>
+<skill name="my-skill" v="1">
 <desc>What it is or when to use it</desc>
+...
+</skill>
 ```
 </file_types>
 
@@ -171,36 +173,47 @@ Rule: If it helps *build* the thing, META. If it helps *use* the thing, source.
 - Markdown inside XML flows naturally
 - Terse tag names: `<stack>` not `<technology_stack>`
 - Nest only when semantically meaningful
-- No XML attributes - use nested elements
+- Use attributes for identity (`name`, `v`), nested elements for content
 - Invent domain-specific tags as needed
 </styling>
 
+<portability>
+LLXML files should be portable across machines and users:
+
+- No hardcoded absolute paths (e.g., `/home/user/dev/...`)
+- Use placeholders in documentation: `<dev-root>/`, `<project-root>/`, `<library-root>/`
+- Scripts should use environment variables with sensible defaults
+- Examples should use generic paths that readers can adapt
+
+This ensures LLXML specs and skills can be shared, vendored, and forked without modification.
+</portability>
+
 <app_spec>
-Required: `<name>`, `<desc>`, `v` attribute on root tag
+Required: `name` attribute, `v` attribute, `<desc>` child
 Recommended: `<status>`, `<stack>`, `<features>`, `<types>`, `<data_flow>`, `<constraints>`
 Freeform: `<crates>`, `<api>`, `<deps>`, `<cli>`, etc.
 </app_spec>
 
 <library_spec>
-Required: `<name>`, `<desc>`, `v` attribute on root tag
+Required: `name` attribute, `v` attribute, `<desc>` child
 Recommended: `<status>`, `<stack>`, `<capabilities>`, `<types>`, `<data_flow>`, `<dist>`, `<constraints>`
 Freeform: `<macros>`, `<adapters>`, `<bindings>`, etc.
 </library_spec>
 
 <skill_spec>
-Required: `<name>` (hyphen-case), `<desc>` (when to use), `v` attribute on root tag
+Required: `name` attribute (hyphen-case), `v` attribute, `<desc>` child (when to use)
 Optional: `<tools>`, `<allowed>`, `<steps>`
 Freeform: decision points, diagrams, examples
 </skill_spec>
 
 <rules_spec>
-Required: `<name>`, `<desc>`, `v` attribute on root tag
+Required: `name` attribute, `v` attribute, `<desc>` child
 Recommended: `<style>`, `<testing>`, `<patterns>`
 Freeform: `<async_patterns>`, `<error_handling>`, etc.
 </rules_spec>
 
 <ref_spec>
-Required: `<name>`, `<desc>`, `v` attribute on root tag
+Required: `name` attribute, `v` attribute, `<desc>` child
 Recommended: `<source>`, `<examples>`, `<patterns>`, `<notes>`
 Freeform: `<api>`, `<architecture>`, `<gotchas>`, etc.
 

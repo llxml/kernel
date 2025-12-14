@@ -1,5 +1,4 @@
-<skill v="1">
-<name>devlog-writing</name>
+<skill name="devlog-writing" v="2">
 <desc>Writing development log entries for session handoffs and progress tracking</desc>
 
 <tools>
