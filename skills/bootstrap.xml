@@ -89,17 +89,10 @@ Current state of development.
 ```
 </step>
 
-<step n="5" name="vendor-llxml-optional">
-If you want LLXML skills available:
+<step n="5" name="build-harness">
+Build a harness to compile context for your project. The harness reads your project's LLXML files and assembles them into context for LLM sessions.
 
-```bash
-cd main
-git submodule add file:///path/to/llxml/kernel vendor/llxml
-```
-
-Then reference skills from `vendor/llxml/skills/`.
-
-Note: LLXML uses `kernel` as its stable branch name (because it *is* the kernel). Your projects should use `stable`.
+The kernel is always available - reference it directly, don't vendor it. See `spec/harness.xml` for a template.
 </step>
 </steps>
 
@@ -119,7 +112,7 @@ Add structure as needed.
 <llm_bootstrap>
 With an LLM, you can bootstrap interactively:
 
-1. Give the LLM the kernel (vendor/llxml or a zip)
+1. Give the LLM the kernel (the seed zip or point it to your kernel path)
 2. Prompt: "Read the LLXML kernel. Help me set up a new project called X."
 3. The LLM reads self.xml and skills, then guides you through setup
 4. Together you create META/backstage.xml tailored to your project
