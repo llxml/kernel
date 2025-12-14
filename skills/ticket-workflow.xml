@@ -1,189 +1,96 @@
-<skill name="ticket-workflow" v="2">
-<desc>Creating and executing tickets - work units bound to feature branches and worktrees</desc>
+<skill name="ticket-workflow" v="3">
+<desc>Task tracking bound to git worktrees. Tickets are claimable work units.</desc>
 
-<overview>
-Tickets are task files that bind work to a specific feature branch and worktree. Unlike objectives (which are planning documents), tickets represent claimable units of work with clear ownership.
-
-Directory structure:
+<structure>
 ```
 META/tickets/
-  todo/           # Unclaimed tickets
-  in-progress/    # Claimed, being worked on
-  review/         # Work complete, awaiting human review
-  done/           # Reviewed and merged
+  todo/           # unclaimed
+  in-progress/    # claimed, has worktree
+  review/         # awaiting human review
+  done/           # merged
 ```
 
-The ticket filename is the feature slug. Everything derives from it:
-- `sidebar-refresh.md` -> branch `sidebar-refresh` -> worktree `_sidebar-refresh`
-</overview>
+Filename = slug: `feature-name.md` → branch `feature-name` → worktree `_feature-name/`
+</structure>
 
-<tools>
-- `META/tickets/` directory structure
-- `git worktree add` for creating feature worktrees
-- TodoWrite/TodoRead tools for execution tracking
-</tools>
-
-<ticket_format>
+<format>
 ```markdown
 # TICKET
-Single sentence describing the feature or fix.
+Single sentence goal.
 
-Brief context paragraph explaining background and motivation.
+Context paragraph.
 
 # CODE SNIPPETS
-Suggested implementation patterns with syntax highlighting.
+Implementation patterns (optional).
 
 # NOTES
-- Architectural constraints
-- Dependencies to preserve
-- Performance considerations
+- Constraints, dependencies, considerations
 
 # TASKS
-- [ ] Phase 1: Foundation
-  - [ ] Specific actionable task with `file/path.rs`
-  - [ ] Another task
-- [ ] Phase 2: Implementation
-  - [ ] ...
+- [ ] Phase 1: Name
+  - [ ] Task with `file/path.rs`
 ```
-</ticket_format>
 
-<naming>
-Filename is the feature slug in kebab-case: `feature-name.md`
+Rules: actionable tasks, file paths in backticks, action verbs, non-actionable info in Notes.
+</format>
 
-Examples:
-- `sidebar-refresh.md`
-- `worktree-diff-view.md`
-- `fix-websocket-reconnect.md`
-</naming>
+<lifecycle>
+**Create**: Write to `todo/{slug}.md`, get approval.
 
-<writing>
-When creating a new ticket:
+**Claim**: 
+```bash
+mv META/tickets/todo/{slug}.md META/tickets/in-progress/
+cd main && git worktree add ../_{slug} -b {slug}
+cd ../_{slug} && git submodule update --init --recursive
+```
 
-1. Determine the feature slug (kebab-case, descriptive)
-2. Create file: `META/tickets/todo/{slug}.md`
-3. Write ticket with:
-   - Clear single-sentence goal
-   - Context paragraph
-   - Code snippets (if applicable)
-   - Notes with constraints
-   - Hierarchical task list with file paths
-4. Present to user for review and iteration
-5. Once approved, ticket is ready to be claimed
+**Work**: Execute tasks in worktree, mark complete as you go, run tests.
 
-Task rules:
-- Tasks must be actionable (can be checked off when done)
-- Include exact file paths in backticks
-- Use action verbs: Create, Update, Implement, Test
-- Include unit test tasks for all code changes
-- Non-actionable info goes in Notes, not tasks
-</writing>
+**Submit**: `mv META/tickets/in-progress/{slug}.md META/tickets/review/` — then STOP.
 
-<doing>
-When claiming and executing a ticket:
+**Review**: Audit tasks, run tests, inspect diff. If changes needed, add Review Addendum.
 
-1. **Claim**: Move ticket from `todo/` to `in-progress/`
-   ```bash
-   mv META/tickets/todo/{slug}.md META/tickets/in-progress/
-   ```
+**Merge** (on human approval):
+```bash
+cd _{slug} && cargo test && pnpm test      # verify
+git rebase -i main                          # squash commits
+cd ../main && git merge {slug} --ff-only   # merge
+rm -rf ../_{slug} && git worktree prune    # cleanup worktree
+git branch -d {slug}                        # delete branch
+mv ../META/tickets/review/{slug}.md ../META/tickets/done/
+```
+</lifecycle>
 
-2. **Create worktree**: Set up feature branch and worktree (from project root)
-   ```bash
-   cd main && git worktree add ../_{slug} -b {slug}
-   cd ../_{slug} && git submodule update --init --recursive
-   ```
-   The submodule init is required - worktrees don't inherit initialized submodules.
-   Then work inside `_{slug}/` for code changes.
+<addendums>
+**Ticket Addendum** — scope expansion before review submission:
+```markdown
+---
 
-3. **Work**: Execute tasks in the worktree
-   - Copy tasks to TodoWrite tool
-   - Work through tasks, marking complete as you go
-   - Mark tasks complete in ticket file as you go
-   - Run tests after code changes
+# TICKET ADDENDUM
 
-4. **Submit for review**: When all tasks are complete and tests pass
-   ```bash
-   mv META/tickets/in-progress/{slug}.md META/tickets/review/
-   ```
-   Then STOP. Do not remove the worktree. Do not touch the branch.
-   Leave everything in place for human review.
+Reason for expansion.
 
-5. **Notify**: `notify-send "Ticket" "{slug} ready for review"`
-</doing>
+- [ ] Phase N: New Work
+  - [ ] Task
+```
 
-<reviewing>
-When reviewing a ticket (yours or another agent's):
+**Review Addendum** — fixes after review feedback:
+```markdown
+---
 
-1. **Read context**: Review the ticket, any handoff logs, and the work done
-2. **Audit tasks**: Verify all checked tasks were actually completed
-3. **Check for gaps**: Look for unchecked tasks or incomplete work
-4. **Run tests**: `cargo test`, `pnpm test`, etc. - all must pass
-5. **Verify changes**: Inspect the diff, confirm changes match ticket intent
-6. **Handle feedback**: If changes needed, add a Review Addendum to the ticket:
-   ```markdown
-   ---
-   
-   # REVIEW ADDENDUM
-   
-   Description of what changed during review.
-   
-   ## Phase N: Review Fixes
-   - [x] Task that was done
-   - [x] Another fix
-   ```
-7. **Squash commits**: Combine all commits into a single commit before finalizing:
-   ```bash
-   git rebase -i main
-   ```
-   Mark all commits except the first as `squash` (or `s`). This creates one clean commit for the entire feature.
-8. **Write commit message**: After squashing, write a clear, technical commit message:
-   - Study the diff with `git diff main...HEAD --stat` and `-p`
-   - Title: clear, concise summary of what changed
-   - Body: 1-3 bullet points max describing what changed and why
-   - NO fluff, NO "Generated with", NO co-author tags, NO corporate speak
-   - Write it like Linus Torvalds would read it: technical, direct, no bullshit
-</reviewing>
+# REVIEW ADDENDUM
 
-<merging>
-When human approves and requests merge:
+What changed during review.
 
-1. **Final verification**: Ensure all tests pass and code is complete
-   ```bash
-   cd _{slug} && cargo test && pnpm test
-   ```
-2. **Merge to main**: Fast-forward merge the squashed commit
-   ```bash
-   cd main && git merge {slug} --ff-only
-   ```
-   Use `--ff-only` to ensure clean linear history. If it fails, the branch needs rebasing.
-3. **Verify in main**: Run tests again from main to confirm merge succeeded
-   ```bash
-   cargo test && pnpm test
-   ```
-4. **Remove worktree**: Clean up the feature worktree
-   ```bash
-   rm -rf _{slug} && git worktree prune
-   ```
-   Use `rm -rf` because submodules prevent `git worktree remove`.
-5. **Delete branch**: Remove the feature branch
-   ```bash
-   git branch -d {slug}
-   ```
-6. **Archive context file**: Move the worktree context file to archive
-   ```bash
-   mv ctx/_{slug}.xml ctx/archive/
-   ```
-7. **Move ticket**: `mv META/tickets/review/{slug}.md META/tickets/done/`
-</merging>
-
-<after_review>
-Agents do NOT autonomously merge or remove worktrees. Wait for explicit human approval.
-When human says "merge it" or "looks good, merge", proceed with the full merging sequence.
-</after_review>
+- [x] Phase N: Review Fixes
+  - [x] Fix applied
+```
+</addendums>
 
 <multi_agent>
-The directory structure provides implicit coordination:
-- If a ticket is in `in-progress/`, it's claimed - don't touch it
-- Only claim tickets from `todo/`
+Directory structure = implicit coordination:
+- `in-progress/` = claimed, don't touch
+- Only claim from `todo/`
 - One agent per ticket, one ticket per worktree
 </multi_agent>
 </skill>

@@ -15,7 +15,7 @@ Git worktrees allow multiple working directories from a single repository. The k
 project-root/           # Operate from here
 ├── ll.xml              # Project manifest
 ├── main/               # THE git repository (has .git/)
-├── stable/             # Stable branch worktree (for vendoring, optional)
+├── kernel/             # Stable branch worktree (for vendoring, optional)
 ├── _feature-x/         # Feature worktree (references main/.git)
 ├── _bugfix-y/          # Another worktree
 ├── META/               # Shared across all, versioned by Loom

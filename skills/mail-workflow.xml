@@ -1,0 +1,67 @@
+<skill name="mail-workflow" v="3">
+<desc>Async message queue for items needing attention.</desc>
+
+<structure>
+```
+META/mail/
+  inbox/    # unprocessed
+  read/     # processed, kept for reference
+  trash/    # discarded, ~30 day retention
+```
+
+File format: `YYYYMMDD-HHMM-slug.md`
+</structure>
+
+<format>
+```markdown
+# Title
+
+Brief description.
+
+## Context
+- Source, relevance, related files
+
+## Questions
+- Clarifying questions, options to consider
+```
+
+One topic per item. Split if too big.
+</format>
+
+<sources>
+- `META/BACKLOG.md` — human scratch space, process into mail items
+- Cross-project — bugs in vendored libs go to that project's mail
+- Agent discoveries — bugs, missing features, tech debt
+</sources>
+
+<processing>
+1. Read and understand
+2. Decide: ticket, quick-fix, defer, or discard
+3. Take action
+4. Move to `read/` or `trash/` with disposition
+
+When moving to `read/`, append:
+```markdown
+---
+
+## Marked as Read
+
+**Disposition**: ticket | quick-fix | defer | discard
+**Date**: YYYY-MM-DD
+**Notes**: What was decided
+**Ticket**: META/tickets/todo/slug.md (if applicable)
+```
+</processing>
+
+<outcomes>
+- **Ticket** → `META/tickets/todo/`, item to `read/`
+- **Quick fix** → implement directly, item to `read/`
+- **Decompose** → split into multiple inbox items
+- **Defer** → note reason, move to `read/`
+- **Discard** → move to `trash/`
+</outcomes>
+
+<cleanup>
+Trash items deleted after ~30 days: `find META/mail/trash -mtime +30 -delete`
+</cleanup>
+</skill>

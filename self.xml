@@ -1,4 +1,4 @@
-<self v="4">
+<self v="5">
 <intro>
 LLXML: "LLM XML" - A hybrid XML+Markdown format for AI-assisted development.
 This spec defines itself.
@@ -15,8 +15,9 @@ Markdown flows inside XML. Tags are short. Structure serves communication, not s
 </philosophy>
 
 <file_types>
-Six root tags define file types:
+Seven root tags define file types:
 
+- `<ll>` - Project manifest (signals "this is an LLXML project")
 - `<app>` - Architecture spec for something you run (desktop, web, CLI, server)
 - `<library>` - Architecture spec for something you consume (crate, package, framework)
 - `<skill>` - Teachable process an LLM can learn (workflow, procedure, technique)
@@ -134,7 +135,7 @@ LLXML projects use git worktrees:
 project/
 ├── ll.xml          # Manifest (signals "this is LLXML")
 ├── main/           # Git repository (has .git/)
-├── stable/         # Stable branch worktree (for vendoring, optional)
+├── kernel/         # Stable branch worktree (for vendoring, optional)
 ├── _feature-x/     # Feature worktrees (underscore prefix)
 ├── META/           # Shared dev knowledge (not in git)
 │   ├── spec/       # Architecture specs
@@ -148,14 +149,14 @@ Key concepts:
 - **main/** is the repo, worktrees reference it
 - **META/** shared across worktrees, not shipped
 - **Source** (main/, worktrees) ships when vendored
-- **stable/** only needed if others will vendor this project
+- **kernel/** only needed if others will vendor this project
 </project_layout>
 
 <vendoring>
-Libraries share code via stable worktrees:
+Libraries share code via kernel worktrees:
 
 ```bash
-git submodule add file:///path/to/library/stable vendor/library
+git submodule add file:///path/to/library/kernel vendor/library
 ```
 
 "Publishing" = merging main to stable. Consumers get a snapshot via submodule.
@@ -219,4 +220,19 @@ Freeform: `<api>`, `<architecture>`, `<gotchas>`, etc.
 
 Key: You never import or modify a ref. It's curated pointers with your notes.
 </ref_spec>
+
+<ll_spec>
+The project manifest. Lives at project root as `ll.xml`.
+
+Required: `name` attribute
+Optional: `v` attribute, `<desc>` child
+
+```xml
+<ll name="myproject" v="1">
+<desc>What this project is</desc>
+</ll>
+```
+
+Signals to tooling: "this directory is an LLXML project root."
+</ll_spec>
 </self>

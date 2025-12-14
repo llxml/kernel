@@ -1,0 +1,96 @@
+<skill name="bootstrap" v="1">
+<desc>Setting up a new LLXML environment from scratch</desc>
+
+<overview>
+Bootstrap creates a working LLXML project from the seed. The seed is the philosophical anchor; the project structure is the implementation.
+
+Prerequisites:
+- Git installed
+- A directory for your project
+</overview>
+
+<steps>
+<step n="1" name="get-the-seed">
+The seed lives at `kernel/seed.txt` in any LLXML distribution:
+
+```
+The language of a language that can describe and improve itself.
+Any implementation satisfying this principle is valid.
+```
+
+This is the fixed point. Everything else grows from it.
+</step>
+
+<step n="2" name="create-project-structure">
+```bash
+mkdir -p myproject/{main,META/{spec,skills,tickets/{todo,in-progress,review,done},mail/{inbox,read,trash},reflection},ctx}
+cd myproject/main && git init
+```
+
+Structure:
+```
+myproject/
+├── ll.xml              # Manifest (create empty or with project name)
+├── main/               # Git repository
+├── META/               # Dev-time knowledge (not in git)
+│   ├── spec/           # Architecture specs
+│   ├── skills/         # Project-specific skills
+│   ├── tickets/        # Task workflow
+│   ├── mail/           # Async message queue
+│   └── reflection/     # Concept development
+└── ctx/                # Assembled context
+```
+</step>
+
+<step n="3" name="create-manifest">
+```bash
+echo '<project name="myproject" v="0"/>' > ll.xml
+```
+
+The manifest signals "this is an LLXML project" to tooling.
+</step>
+
+<step n="4" name="setup-backstage">
+Create `META/backstage.xml` for project-level design context:
+
+```xml
+<backstage>
+<desc>Design context for myproject</desc>
+
+<goals>
+- What this project aims to do
+- Key constraints and decisions
+</goals>
+
+<status>
+Current state of development.
+</status>
+</backstage>
+```
+</step>
+
+<step n="5" name="vendor-llxml-optional">
+If you want LLXML skills available:
+
+```bash
+cd main
+git submodule add file:///path/to/llxml/kernel vendor/llxml
+```
+
+Then reference skills from `vendor/llxml/skills/`.
+</step>
+</steps>
+
+<minimal_bootstrap>
+Absolute minimum to start:
+
+```bash
+mkdir -p myproject/main && cd myproject
+git -C main init
+echo '<project name="myproject"/>' > ll.xml
+mkdir -p META/tickets/{todo,in-progress,review,done}
+```
+
+Add structure as needed.
+</minimal_bootstrap>
+</skill>

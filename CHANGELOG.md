@@ -1,11 +1,16 @@
 # Changelog
 
+## v5 (2025-12-14)
+- Renamed `stable/` worktree to `kernel/` across all skills
+- Renamed `inbox-workflow.xml` to `mail-workflow.xml` (v3)
+- Mail now uses `META/mail/{inbox,read,trash}/` structure
+
 ## v4 (2025-12-14)
 - **Breaking**: `name` is now an attribute on root tag, not a child element
   - Old: `<skill v="1"><name>foo</name>...`
   - New: `<skill name="foo" v="1">...`
 - Added `<portability>` section to self.xml — no hardcoded paths
-- Added `inbox-workflow` skill
+- Added `inbox-workflow` skill (now mail-workflow)
 - Removed `objective-cycle` skill (superseded by ticket-workflow)
 - Removed `http-api-usage` skill (belongs in http_api library)
 - Simplified `ll.xml` manifest format

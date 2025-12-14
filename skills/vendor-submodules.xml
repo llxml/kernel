@@ -2,7 +2,7 @@
 <desc>Managing shared library dependencies via git submodules in vendor/</desc>
 
 <overview>
-Libraries follow the standard project layout with `main/` (git repo) and `stable/` (worktree for vendoring). Consumer projects add submodules pointing to stable worktrees. Use the `vnd` script for common operations.
+Libraries follow the standard project layout with `main/` (git repo) and `kernel/` (worktree for vendoring). Consumer projects add submodules pointing to kernel worktrees. Use the `vnd` script for common operations.
 
 The `vnd` script uses environment variables to locate libraries:
 - `LLXML_RUST_LIBS` - Rust library root (default: `$HOME/dev/rust`)
@@ -35,14 +35,14 @@ Libraries are expected at:
 ```
 $LLXML_RUST_LIBS/<name>/
 ├── main/                   # Git repository
-└── stable/                 # Worktree for vendoring
+└── kernel/                 # Worktree for vendoring
 
 $LLXML_WEB_LIBS/<name>/
 ├── main/
-└── stable/
+└── kernel/
 ```
 
-Submodule URLs use `file://` protocol pointing to the stable worktree.
+Submodule URLs use `file://` protocol pointing to the kernel worktree.
 </library_locations>
 
 <adding_vendor>
@@ -55,7 +55,7 @@ vnd add rust/http_api
 Manual (requires knowing the library path):
 ```bash
 cd main
-git submodule add file://<library-root>/stable vendor/<name>
+git submodule add file://<library-root>/kernel vendor/<name>
 ```
 </adding_vendor>
 
@@ -78,11 +78,11 @@ Do NOT use:
 <library_requirements>
 For a library to be vendorable:
 
-1. Must have stable worktree:
+1. Must have kernel worktree:
 ```bash
 cd <library-root>/main
 git branch stable
-git worktree add ../stable stable
+git worktree add ../kernel stable
 ```
 
 2. Crates must NOT use workspace inheritance (`.workspace = true`) for package fields or dependencies. Use explicit values so the crate works when vendored into another workspace.
@@ -103,10 +103,10 @@ serde = { version = "1.0", features = ["derive"] }
 <publishing>
 "Publishing" = merging main to stable:
 ```bash
-cd <library-root>/stable
+cd <library-root>/kernel
 git merge main
 ```
-Or: `git -C stable merge main`
+Or: `git -C kernel merge main`
 </publishing>
 
 <updating_vendor>
