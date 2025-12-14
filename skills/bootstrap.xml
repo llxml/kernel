@@ -44,7 +44,7 @@ myproject/
 
 <step n="3" name="create-manifest">
 ```bash
-echo '<project name="myproject" v="0"/>' > ll.xml
+echo '<ll name="myproject" v="0"/>' > ll.xml
 ```
 
 The manifest signals "this is an LLXML project" to tooling.
@@ -87,7 +87,7 @@ Absolute minimum to start:
 ```bash
 mkdir -p myproject/main && cd myproject
 git -C main init
-echo '<project name="myproject"/>' > ll.xml
+echo '<ll name="myproject"/>' > ll.xml
 mkdir -p META/tickets/{todo,in-progress,review,done}
 ```
 

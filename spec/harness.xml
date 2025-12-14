@@ -25,7 +25,7 @@ Core loop: discover -> watch -> debounce -> assemble -> output
 <discovery>
 - Scans configurable dev roots for projects with ll.xml manifests
 - Respects ignore patterns (target, node_modules, .git, etc.)
-- Detects profile configuration files in METThank you.
+- Detects profile configuration files in META/
 - Groups projects by category (apps/, rust/, web/, etc.)
 </discovery>
 
