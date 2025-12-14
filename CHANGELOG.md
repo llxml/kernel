@@ -4,6 +4,17 @@
 - Renamed `stable/` worktree to `kernel/` across all skills
 - Renamed `inbox-workflow.xml` to `mail-workflow.xml` (v3)
 - Mail now uses `META/mail/{inbox,read,trash}/` structure
+- Added `META/reflection/` for concept development
+- Added `bootstrap.xml` skill for project setup
+- Added `ticket-sub-agents.xml` skill for delegating ticket work
+- Added `retro-writing.xml` skill for retrospectives
+- Added `skill-writing.xml` skill for creating skills
+- Added `<ll_manifest>` section to `harness.xml` (moved from self.xml)
+- Added ticket addendum pattern to `ticket-workflow.xml`
+- Added file movement warnings (mv not cp) to workflow skills
+- Compressed `ticket-workflow.xml` (234 → 96 lines)
+- Compressed `mail-workflow.xml` (170 → 67 lines)
+- self.xml stays at 6 document types (ll.xml is tooling, not content)
 
 ## v4 (2025-12-14)
 - **Breaking**: `name` is now an attribute on root tag, not a child element

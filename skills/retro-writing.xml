@@ -1,0 +1,77 @@
+<skill name="retro-writing" v="1">
+<desc>Writing retrospectives after significant work to capture thinking, wins, and surprises.</desc>
+
+<overview>
+Retros are reflection, not bug reports. They capture what happened, why decisions were made, what emerged unexpectedly, and what actually got built. The thinking trail matters as much as the outcomes.
+
+Directory: `META/retro/`
+Format: `YYYYMMDD-HHMM-description.md`
+</overview>
+
+<when_to_write>
+- After significant work ships (not on a schedule)
+- After discovering something unexpected
+- After a session with major decisions
+- When the thinking trail needs preserving for future context
+
+Not: every sprint, every ticket, or on ceremony.
+</when_to_write>
+
+<what_goes_in>
+<wins>
+What actually got built. Not just "completed X" but the substance - the things that emerged, the problems solved, the infrastructure created. Call out what worked.
+</wins>
+
+<surprises>
+What you didn't expect. Came in to do X, ended up building Y. Found a bug through testing. Discovered a concept needed rethinking. The unexpected is often the most valuable.
+</surprises>
+
+<decisions>
+Why things ended up the way they did. The debate, the options considered, the reasoning. Future readers need the thinking trail, not just the outcome.
+</decisions>
+
+<open_threads>
+What's unfinished, parked, or needs future attention. Not as complaints - as context for whoever picks it up next.
+</open_threads>
+
+<what_was_learned>
+Only when there was a problem that got fixed. Not boilerplate - conditional. When something went wrong, got debugged, got resolved: what's the takeaway? What would have prevented it? What do we know now?
+
+This section earns its place. Don't add it to feel thorough.
+</what_was_learned>
+</what_goes_in>
+
+<what_stays_out>
+- Time estimates or durations (irrelevant to the work)
+- Blame or drama
+- Ceremony or process theater
+- Exhaustive task lists (that's what tickets are for)
+</what_stays_out>
+
+<format>
+```markdown
+# Retrospective: [Description]
+
+## Summary
+What this session/work was about. One paragraph.
+
+## What We Built
+The actual accomplishments. Be specific. Call out wins.
+
+## Key Decisions
+Major choices and the reasoning behind them. The thinking trail.
+
+## Surprises
+What emerged unexpectedly. Discoveries, pivots, bugs found.
+
+## Open Threads
+Unfinished work, parked ideas, future considerations.
+```
+
+Sections are flexible. Add what's relevant, skip what's not. The goal is useful reflection, not template compliance.
+</format>
+
+<tone>
+Write for someone picking up the work later. Be direct. Include the "we actually built that" moments. Capture the real thinking, not sanitized summaries.
+</tone>
+</skill>
