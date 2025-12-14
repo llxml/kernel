@@ -1,0 +1,67 @@
+<skill v="1">
+<name>git-worktrees</name>
+<desc>Understanding git worktree structure for isolated parallel development</desc>
+
+<overview>
+Git worktrees allow multiple working directories from a single repository. The key distinction:
+
+- `main/` is the **actual git repository** (contains `.git/` directory)
+- Worktrees (`_feature-x/`, `_bugfix-y/`) are lightweight checkouts that reference `main/.git`
+- Worktrees are ephemeral and can be created/removed; `main/` is permanent
+- You cannot delete `main/` - worktrees depend on it
+</overview>
+
+<structure>
+```
+project-root/           # Operate from here
+├── ll.xml              # Project manifest
+├── main/               # THE git repository (has .git/)
+├── stable/             # Stable branch worktree (for vendoring, optional)
+├── _feature-x/         # Feature worktree (references main/.git)
+├── _bugfix-y/          # Another worktree
+├── META/               # Shared across all, versioned by Loom
+│   ├── spec/
+│   ├── skills/
+│   ├── objectives/
+│   ├── tickets/
+│   └── logs/
+└── .ctx/               # Assembled context output
+```
+</structure>
+
+<rules>
+- **Operate from project root** - Not from inside `main/` or a worktree
+- **main/ is the repo** - It's not "just another worktree", it's the source
+- **Worktrees are disposable** - Created for tickets, removed after merge
+- **META is shared** - All worktrees see the same `META/` directory
+- **No git commands** - Never run git commands; user manages version control
+</rules>
+
+<creating_worktrees>
+From project root:
+```bash
+git worktree add _feature-name -b feature-name
+```
+
+This creates:
+- Branch `feature-name` (based on current HEAD of main)
+- Directory `_feature-name/` with that branch checked out
+</creating_worktrees>
+
+<removing_worktrees>
+Only humans remove worktrees, after review and merge:
+```bash
+git worktree remove _feature-name
+```
+
+Agents do NOT remove worktrees. Leave them for human review.
+</removing_worktrees>
+
+<allowed>
+- Read files in `META/` for context
+- Write to `META/tickets/` when managing tickets
+- Write to `META/objectives/` when creating objectives
+- Write to `META/logs/` when writing devlogs
+- Work in assigned worktree for code changes
+</allowed>
+</skill>

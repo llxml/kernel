@@ -1,0 +1,294 @@
+<skill>
+<name>http-api-usage</name>
+<desc>Using the http_api library for type-safe HTTP APIs with auto-generated TypeScript bindings</desc>
+
+<overview>
+http_api provides declarative macros for defining type-safe HTTP APIs. Everything is POST to a single endpoint - no HTTP verbs, no route parameters. Semantics are in the operation NAME, not the HTTP method.
+
+Key principle: Define your API once in Rust, get type-safe server traits, Rust clients, WASM bindings, and TypeScript clients automatically.
+</overview>
+
+<macros>
+<xhr_api>
+Request/response pattern. All operations POST to `/api/v1/:r` where `:r` is the operation name.
+
+```rust
+xhr_api! {
+    #[derive(Debug, Clone)]  // Applied to all generated structs
+    api_name {
+        // Unit request, struct response
+        list_items -> { items: Vec<Item> };
+        
+        // Struct request, struct response
+        create_item { name: String, value: i64 } -> { item: Item };
+        
+        // Single-type request, single-type response
+        get_item(u64) -> Item;
+        
+        // Struct request, unit response
+        update_item { id: u64, name: String };
+        
+        // Single-type request, unit response
+        delete_item(u64);
+    }
+}
+```
+</xhr_api>
+
+<websocket_api>
+Bidirectional messaging with `@server` (client-to-server) and `@client` (server-to-client) sections.
+
+```rust
+websocket_api! {
+    chat_ws {
+        @server {
+            send_message { content: String, room_id: u64 };
+            join_room { room_id: u64 };
+            leave_room(u64);  // Single-type
+            ping;             // Unit
+        }
+        @client {
+            message_received { from_user: String, content: String };
+            user_joined { username: String };
+            room_left(u64);   // Single-type
+            pong;             // Unit
+        }
+    }
+}
+```
+</websocket_api>
+
+<sse_api>
+Server-sent events for streaming updates.
+
+```rust
+sse_api! {
+    notifications {
+        info { title: String, message: String };
+        warning { title: String, message: String };
+        progress(f64);    // Single-type
+        heartbeat;        // Unit
+    }
+}
+```
+</sse_api>
+</macros>
+
+<server_implementation>
+Implement the generated `Server` trait with the `#[axum_xhr_handler]` attribute:
+
+```rust
+use http_api::axum_xhr_handler;
+
+#[axum_xhr_handler(api_name)]
+impl api_name::Server for MyHandler {
+    async fn list_items(&self) -> anyhow::Result<api_name::list_items::Response> {
+        let items = self.db.get_all().await?;
+        Ok(api_name::list_items::Response { items })
+    }
+    
+    async fn get_item(&self, id: u64) -> anyhow::Result<Item> {
+        // Single-type params are unwrapped in signature
+        self.db.get(id).await
+    }
+    
+    async fn delete_item(&self, id: u64) -> anyhow::Result<()> {
+        self.db.delete(id).await
+    }
+}
+```
+
+The attribute macro generates:
+- `impl HttpServer for MyHandler {}`
+- `pub struct AxumRequestHandler;`
+- `impl HttpHandler<MyHandler, api_name::Route> for AxumRequestHandler { ... }`
+</server_implementation>
+
+<route_setup>
+Single route handles all operations:
+
+```rust
+use axum::{Router, routing::post};
+use http_api::adapters::axum::handle_axum;
+
+pub fn create_router(handler: MyHandler) -> Router {
+    Router::new()
+        .route(
+            "/api/v1/:r",
+            post(handle_axum::<api_name::Route, MyHandler, AxumRequestHandler>),
+        )
+        .with_state(handler)
+}
+```
+
+For WebSocket:
+```rust
+use http_api::adapters::websocket_axum::{ws_route, WsFormat};
+
+Router::new()
+    .route("/ws", ws_route(ws_handler, WsFormat::Binary))
+```
+
+For SSE:
+```rust
+use http_api::adapters::sse_axum::sse_route;
+
+Router::new()
+    .route("/sse", sse_route(|state, sender| async move { ... }))
+```
+</route_setup>
+
+<crate_structure>
+Standard project layout:
+
+```
+crates/
+  myapp_api/        # API definitions (xhr_api!, types)
+    src/lib.rs
+    Cargo.toml
+  myapp_server/     # Server implementation
+    src/
+      handlers.rs   # Server trait impl
+      lib.rs        # Router setup
+    Cargo.toml
+  myapp_client/     # Rust HTTP client (optional)
+    src/lib.rs
+    Cargo.toml
+  myapp_webgen/     # TypeScript generation
+    src/lib.rs      # Just: pub use myapp_api::*;
+    build.rs        # Generates TypeScript
+    Cargo.toml
+```
+</crate_structure>
+
+<api_crate_cargo>
+```toml
+[package]
+name = "myapp_api"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["axum-adapter"]
+axum-adapter = ["http_api/axum-adapter", "tokio"]
+wasm = ["http_api/wasm"]
+typescript = ["http_api/typescript"]
+
+[dependencies]
+http_api = { workspace = true, default-features = false }
+serde = { workspace = true }
+reflect_to = { workspace = true }
+anyhow = { workspace = true }
+serde_json = { workspace = true }
+bincode = { workspace = true }
+tokio = { workspace = true, optional = true }
+```
+</api_crate_cargo>
+
+<webgen_build_rs>
+TypeScript generation via build.rs:
+
+```rust
+use http_api::typescript::TypeScriptApiGenerator;
+
+fn main() -> anyhow::Result<()> {
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
+    let web_dir = std::path::PathBuf::from(manifest_dir).join("../../packages");
+
+    let mut generator = TypeScriptApiGenerator::new_with_wasm(true);
+    myapp_api::api_name::register_types(&mut generator)?;
+
+    let output_dir = web_dir.join("myapp-api");
+    generator.generate(&output_dir, "myapp_webgen", true)?;
+
+    println!("cargo:rerun-if-changed=../myapp_api/src/");
+    Ok(())
+}
+```
+
+Key: Each API module auto-generates `register_types()` which registers all Request/Response types.
+</webgen_build_rs>
+
+<webgen_cargo>
+```toml
+[package]
+name = "myapp_webgen"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+http_api = { workspace = true, default-features = false, features = ["wasm"] }
+myapp_api = { path = "../myapp_api", default-features = false, features = ["wasm"] }
+wasm-bindgen = { workspace = true }
+bincode = { workspace = true }
+serde = { workspace = true }
+serde-wasm-bindgen = { workspace = true }
+js-sys = { workspace = true }
+
+[build-dependencies]
+http_api = { workspace = true, default-features = false, features = ["typescript-wasm", "axum-adapter"] }
+myapp_api = { path = "../myapp_api", default-features = false, features = ["axum-adapter", "typescript"] }
+anyhow = { workspace = true }
+```
+</webgen_cargo>
+
+<types_pattern>
+Types used in API must derive `Serialize`, `Deserialize`, and `Reflect`:
+
+```rust
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, reflect_to::Reflect)]
+pub struct Item {
+    pub id: u64,
+    pub name: String,
+    pub created_at: i64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, reflect_to::Reflect)]
+pub enum Status {
+    Active,
+    Inactive,
+    Pending { reason: String },
+}
+```
+
+Place shared types in the `*_api` crate, before the macro invocation.
+</types_pattern>
+
+<vendor_setup>
+Add http_api and reflect_to as vendor submodules from their stable worktrees:
+
+```bash
+git submodule add file:///home/g/dev/rust/http_api/stable vendor/http_api
+git submodule add file:///home/g/dev/rust/reflect_to/stable vendor/reflect_to
+```
+
+In workspace Cargo.toml:
+```toml
+[patch.crates-io]
+http_api = { path = "vendor/http_api" }
+reflect_to = { path = "vendor/reflect_to" }
+```
+</vendor_setup>
+
+<key_differences_from_rest>
+| Traditional REST | http_api |
+|-----------------|----------|
+| GET /api/items | POST /api/v1/list_items |
+| GET /api/items/:id | POST /api/v1/get_item (id in body) |
+| POST /api/items | POST /api/v1/create_item |
+| PUT /api/items/:id | POST /api/v1/update_item |
+| DELETE /api/items/:id | POST /api/v1/delete_item |
+
+Semantics are in the operation NAME, not HTTP verb or URL structure.
+</key_differences_from_rest>
+
+<reference>
+- Library source: `~/dev/rust/http_api/main/`
+- Full docs: `~/dev/rust/http_api/main/docs/USING_HTTP_API.md`
+- Examples: `~/dev/rust/http_api/main/examples/` (todo, chat, notifs, agents)
+- Reference impl: `~/dev/apps/ramble/main/crates/ramble_api/`
+</reference>
+</skill>

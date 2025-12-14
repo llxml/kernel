@@ -1,0 +1,63 @@
+<skill v="1">
+<name>devlog-writing</name>
+<desc>Writing development log entries for session handoffs and progress tracking</desc>
+
+<tools>
+- `META/logs/` directory
+- `date +"%Y%m%d-%H%M"` for timestamps
+</tools>
+
+<naming>
+`YYYYMMDD-HHMM-description.md`
+
+Examples:
+- `20251205-1430-webrtc-integration-complete.md`
+- `20251206-0915-relay-server-refactor.md`
+</naming>
+
+<style>
+- Write for an expert audience
+- Be concise but capture important details
+- Include file references with line numbers: `main/src/relay/mod.rs:42`
+- Use mermaid diagrams where they add clarity
+- No fluff or preamble
+</style>
+
+<structure>
+```markdown
+# Summary
+One paragraph describing what was accomplished.
+
+# Changes
+- `main/crate/file.rs` - What changed and why
+- `main/another/file.rs:123` - Specific line reference
+
+# Architecture Decisions
+Why certain approaches were chosen over alternatives.
+
+# Open Questions
+Unresolved issues or decisions for next session.
+
+# Next Steps
+What should happen next.
+```
+</structure>
+
+<steps>
+1. Get timestamp: `date +"%Y%m%d-%H%M"`
+2. Create file: `META/logs/YYYYMMDD-HHMM-description.md`
+3. Write summary of work completed
+4. List specific file changes with paths (relative to project root)
+5. Document any architectural decisions made
+6. Note open questions or blockers
+7. Outline next steps for handoff
+</steps>
+
+<when_to_write>
+- End of a work session
+- After completing a major objective or ticket
+- When handing off to another agent/session
+- When encountering a significant blocker
+- After making architectural decisions that need documentation
+</when_to_write>
+</skill>

@@ -1,4 +1,4 @@
-<skill>
+<skill v="1">
 <name>llxml-writing</name>
 <desc>
 Use when creating or updating LLXML specification files. Covers methodology for
@@ -73,7 +73,8 @@ Structure using LLXML conventions:
 - Name each data flow diagram
 - Group features by area
 - Use terse tag names
-- Include code snippets where helpful
+- Only two code block types: pseudo-types (LLXML notation) and mermaid diagrams
+- Never include raw language code (Rust, TypeScript, etc.)
 </step_4>
 
 <step_5>
@@ -155,22 +156,34 @@ Use LLXML's terse type syntax:
 - Rust-specific memory types in type definitions
 - Verbose tag names (`<technology_stack>` vs `<stack>`)
 - XML attributes (use nested elements instead)
+- Raw language code (Rust traits, TypeScript interfaces, etc.) - use pseudo-types instead
 </avoid>
 </common_mistakes>
 
 <meta_vs_source>
+Loom scans both META and source for LLXML files. The location determines shipping behavior:
+
 <meta>
 Goes in META/ directory (dev-time, not shipped):
-- Architecture specs (`<app>`, `<library>`)
-- Project-specific skills and rules
+- Architecture specs (`<app>`, `<library>`) - help agents understand the codebase
+- Project-specific skills and rules - internal workflows
 - Objectives and logs
 </meta>
 
 <source>
 Goes in source code (shipped when vendored):
 - Consumer-facing skills ("how to use this library")
-- Rules for consumers
+- Rules for consumers ("conventions when using this API")
 - Documentation that travels with the code
+
+When a project is vendored, only source LLXML files come along. META stays with the developer.
 </source>
+
+<vendor>
+Loom also scans vendor/ directories in worktrees:
+- Discovers LLXML files from vendored dependencies
+- These are read-only (owned by the dependency)
+- Useful for understanding how to use vendored libraries
+</vendor>
 </meta_vs_source>
 </skill>

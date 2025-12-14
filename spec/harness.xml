@@ -1,0 +1,200 @@
+<app v="1">
+<name>harness</name>
+<desc>
+Template for an LLXML context assembler and development environment.
+
+A harness watches LLXML projects, assembles context based on profiles, and outputs
+concatenated files for AI agent consumption. This is a forkable starting point—
+adapt it to your stack and requirements.
+</desc>
+
+<workflow>
+LLM agents are the primary consumers of assembled context. Files change on disk
+from external processes (editors, agents, scripts).
+
+Core loop: discover -> watch -> debounce -> assemble -> output
+
+1. Discovery scans configured dev roots for ll.xml manifests
+2. Watcher monitors META directories for file changes
+3. Debouncer batches rapid edits (prevents excessive rebuilds)
+4. Assembler compiles context based on active profile
+5. Output written to ctx/{profile}.xml for agent consumption
+</workflow>
+
+<features>
+<discovery>
+- Scans configurable dev roots for projects with ll.xml manifests
+- Respects ignore patterns (target, node_modules, .git, etc.)
+- Detects profile configuration files in META
+- Groups projects by category (apps/, rust/, web/, etc.)
+</discovery>
+
+<assembly>
+- Profile-based context assembly
+- Glob pattern matching for file inclusion
+- Scans META for dev-time LLXML files
+- Scans source (worktrees) for shipped LLXML files
+- Scans vendor directories for dependency LLXML files
+- Configurable vendor extraction modes
+</assembly>
+
+<profiles>
+- Multiple profiles per project (init, code, full, etc.)
+- Configurable include patterns per profile
+- Shared skills/rules selection
+- Reference document inclusion
+</profiles>
+
+<watching>
+- Monitors META directories for file changes
+- Debounces rapid edits before recompilation
+- Auto-compiles affected profiles on change
+- Writes output to ctx/{profile}.xml
+</watching>
+
+<worktrees>
+- Discovers all worktrees per project from ll.xml manifest
+- Main worktree: full file tree, editable
+- Stable worktree: read-only, for vendoring reference
+- Feature worktrees (_prefix): diff view against main
+</worktrees>
+
+<tickets>
+- Ticket workflow for binding work to feature branches/worktrees
+- Directory structure: META/tickets/{todo,in-progress,review,done}/
+- Ticket filename = branch name = worktree name (with _ prefix)
+</tickets>
+</features>
+
+<types>
+<config>
+struct HarnessConfig {
+    dev_roots: str[],
+    ignore_patterns: str[],
+}
+
+struct ProjectConfig {
+    profiles: str -> ProfileConfig,
+    settings: Settings,
+}
+
+struct ProfileConfig {
+    include: str[],
+    vendor_mode: VendorMode,
+    shared: str[],
+    refs: str[],
+}
+
+struct Settings {
+    output_dir: str,
+    prepend?: str,
+}
+
+enum VendorMode {
+    Workflow,
+    Types,
+    Full,
+    None,
+}
+</config>
+
+<discovery>
+struct DiscoveredProject {
+    name: str,
+    path: str,
+    category: str,
+    manifest: Manifest,
+    has_config: bool,
+}
+
+struct Manifest {
+    repo: str,
+    worktrees: str[],
+    meta: str,
+    ctx: str,
+}
+</discovery>
+
+<assembly>
+struct AssembledContext {
+    profile: str,
+    project: str,
+    sections: ContextSection[],
+}
+
+enum ContextSection {
+    Project { content: str },
+    Skills { content: str },
+    Rules { content: str },
+    Vendor { name: str, content: str },
+    Refs { name: str, content: str },
+}
+</assembly>
+
+<worktrees>
+struct WorktreeInfo {
+    name: str,
+    path: str,
+    kind: WorktreeKind,
+    changed_files: str[],
+}
+
+enum WorktreeKind {
+    Main,
+    Stable,
+    Feature,
+}
+</worktrees>
+</types>
+
+<data_flow>
+<discovery_flow>
+```mermaid
+graph LR
+    Config[harness config] --> Roots[dev_roots]
+    Roots --> Scan[Recursive scan]
+    Scan --> Ignore[Skip ignored dirs]
+    Ignore --> Find[Find ll.xml files]
+    Find --> Projects[DiscoveredProject[]]
+```
+</discovery_flow>
+
+<assembly_flow>
+```mermaid
+graph TD
+    Profile[Profile Config] --> Assembler
+    MetaFiles[META/*.xml] --> Assembler
+    SourceFiles[Source/*.xml] --> Assembler
+    VendorFiles[vendor/*/*.xml] --> Assembler
+    Assembler --> Context[AssembledContext]
+    Context --> Output[ctx/profile.xml]
+```
+</assembly_flow>
+</data_flow>
+
+<constraints>
+<requirements>
+- File system watching capability
+- LLXML parsing (or treat as raw text)
+- Glob pattern matching
+</requirements>
+
+<non_goals>
+- No real-time collaboration
+- No git operations (read-only git integration for diffs)
+- No remote sync
+</non_goals>
+</constraints>
+
+<implementation_notes>
+This is a template. When forking:
+
+1. Choose your stack (Rust+Axum, Node+Express, Go, etc.)
+2. Implement discovery by scanning dev_roots for ll.xml
+3. Implement watching using your platform's file watcher
+4. Implement assembly by concatenating matched files
+5. Add UI if desired (web, TUI, or headless)
+
+The core value is the assembly loop—everything else is optional.
+</implementation_notes>
+</app>

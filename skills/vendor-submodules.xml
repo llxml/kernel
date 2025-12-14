@@ -1,0 +1,145 @@
+<skill v="1">
+<name>vendor-submodules</name>
+<desc>Managing shared library dependencies via git submodules in vendor/</desc>
+
+<overview>
+Libraries follow the standard project layout with `main/` (git repo) and `stable/` (worktree for vendoring). Consumer projects add submodules pointing to stable worktrees. Use the `vnd` script for common operations.
+
+The `vnd` script uses environment variables to locate libraries:
+- `LLXML_RUST_LIBS` - Rust library root (default: `$HOME/dev/rust`)
+- `LLXML_WEB_LIBS` - Web library root (default: `$HOME/dev/web`)
+</overview>
+
+<tools>
+- `vnd` script (llxml/main/scripts/vnd)
+- `git submodule` commands
+</tools>
+
+<vnd_script>
+The `vnd` script simplifies vendor management:
+
+```bash
+vnd init                    # Create vendor/ directory
+vnd add rust/sqlkit         # Add submodule from stable worktree
+vnd add web/jotai-dev-tools # Add web library
+vnd rm sqlkit               # Remove submodule
+vnd update sqlkit           # Pull latest and stage
+vnd update                  # Update all vendors
+vnd status                  # Show ahead/behind for all
+vnd ls                      # List all vendor submodules
+vnd sync                    # Sync URLs after .gitmodules change
+```
+</vnd_script>
+
+<library_locations>
+Libraries are expected at:
+```
+$LLXML_RUST_LIBS/<name>/
+├── main/                   # Git repository
+└── stable/                 # Worktree for vendoring
+
+$LLXML_WEB_LIBS/<name>/
+├── main/
+└── stable/
+```
+
+Submodule URLs use `file://` protocol pointing to the stable worktree.
+</library_locations>
+
+<adding_vendor>
+Using vnd (preferred):
+```bash
+cd main
+vnd add rust/http_api
+```
+
+Manual (requires knowing the library path):
+```bash
+cd main
+git submodule add file://<library-root>/stable vendor/<name>
+```
+</adding_vendor>
+
+<rust_integration>
+Use relative paths in `[workspace.dependencies]`:
+```toml
+[workspace.dependencies]
+http_api = { path = "vendor/http_api/crates/http_api", default-features = false }
+sqlkit-rusqlite = { path = "vendor/sqlkit/crates/sqlkit-rusqlite" }
+devtui = { path = "vendor/devtui" }
+```
+
+Do NOT use:
+- `[patch.crates-io]` sections
+- `.cargo/config.toml` patches
+- Absolute paths
+- Git file:// URLs in Cargo.toml
+</rust_integration>
+
+<library_requirements>
+For a library to be vendorable:
+
+1. Must have stable worktree:
+```bash
+cd <library-root>/main
+git branch stable
+git worktree add ../stable stable
+```
+
+2. Crates must NOT use workspace inheritance (`.workspace = true`) for package fields or dependencies. Use explicit values so the crate works when vendored into another workspace.
+
+Bad:
+```toml
+edition.workspace = true
+serde.workspace = true
+```
+
+Good:
+```toml
+edition = "2024"
+serde = { version = "1.0", features = ["derive"] }
+```
+</library_requirements>
+
+<publishing>
+"Publishing" = merging main to stable:
+```bash
+cd <library-root>/stable
+git merge main
+```
+Or: `git -C stable merge main`
+</publishing>
+
+<updating_vendor>
+Using vnd:
+```bash
+cd main
+vnd update http_api    # Single vendor
+vnd update             # All vendors
+```
+
+Manual:
+```bash
+cd main/vendor/http_api
+git fetch origin
+git checkout origin/HEAD
+cd ../..
+git add vendor/http_api
+```
+</updating_vendor>
+
+<after_clone>
+```bash
+cd main
+git submodule update --init --recursive
+```
+Or: `vnd init`
+</after_clone>
+
+<one_time_setup>
+Enable git file protocol (once per machine):
+```bash
+git config --global protocol.file.allow always
+```
+</one_time_setup>
+</skill>

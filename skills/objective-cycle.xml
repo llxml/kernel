@@ -1,0 +1,74 @@
+<skill>
+<name>objective-cycle</name>
+<desc>Creating and iterating on objective files for task planning</desc>
+
+<tools>
+- `META/objectives/` directory
+- `date +"%Y%m%d-%H%M"` for timestamps
+- TodoWrite/TodoRead tools for execution tracking
+</tools>
+
+<file_format>
+```markdown
+# OBJECTIVE
+Single sentence describing the goal.
+
+Brief context paragraph explaining background and motivation.
+
+# CODE SNIPPETS
+Suggested implementation patterns with syntax highlighting.
+
+# IMPORTANT NOTES
+- Architectural constraints
+- Dependencies to preserve
+- Performance considerations
+
+# TASK LIST
+- [ ] Phase 1: Foundation
+  - [ ] Specific actionable task with `main/file/path.rs`
+  - [ ] Another task
+- [ ] Phase 2: Implementation
+  - [ ] ...
+```
+</file_format>
+
+<naming>
+`YYYYMMDD-HHMM-description.md`
+
+Examples:
+- `20251205-1430-adapter-consolidation.md`
+- `20251206-0915-webrtc-signaling.md`
+</naming>
+
+<steps>
+1. Get timestamp: `date +"%Y%m%d-%H%M"`
+2. Create file: `META/objectives/YYYYMMDD-HHMM-description.md`
+3. Write objective with:
+   - Clear single-sentence goal
+   - Context paragraph
+   - Code snippets (if applicable)
+   - Important notes with constraints
+   - Hierarchical task list with file paths
+4. Present to user for review and iteration
+5. Once approved, copy tasks to TodoWrite tool
+6. Execute tasks, marking complete as you go
+7. Run tests after code changes
+8. Send completion notification: `notify-send "Objective" "Work Completed"`
+</steps>
+
+<task_rules>
+- Tasks must be actionable (can be checked off when done)
+- Include exact file paths in backticks (relative to project root)
+- Use action verbs: Create, Update, Implement, Test
+- Include unit test tasks for all code changes
+- Non-actionable info goes in Important Notes, not tasks
+- Always end with completion notification task
+</task_rules>
+
+<objectives_vs_tickets>
+- **Objectives**: Planning documents for exploration, design, broad work
+- **Tickets**: Claimable work units bound to a feature branch and worktree
+
+Use objectives for planning and iteration with the user. Use tickets when work is well-defined and ready to be claimed and executed in isolation.
+</objectives_vs_tickets>
+</skill>
