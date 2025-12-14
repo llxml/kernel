@@ -5,7 +5,7 @@
 - Renamed `inbox-workflow.xml` to `mail-workflow.xml` (v3)
 - Mail now uses `META/mail/{inbox,read,trash}/` structure
 - Added `META/reflection/` for concept development
-- Added `bootstrap.xml` skill with kernel philosophy (v2)
+- Added `bootstrap.xml` skill with kernel philosophy (v2, experimental)
 - Added `ticket-sub-agents.xml` skill for delegating ticket work
 - Added `retro-writing.xml` skill for retrospectives
 - Added `skill-writing.xml` skill for creating skills
