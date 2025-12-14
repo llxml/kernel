@@ -1,0 +1,112 @@
+<skill name="ticket-sub-agents" v="1">
+<desc>Delegating ticket work to sub-agents for writing, review, and execution.</desc>
+
+<overview>
+Sub-agents are stateless workers spawned for specific tasks. They read context, do work, report back. The orchestrating agent manages the flow and validates results.
+
+This is optional - not all ticket work needs sub-agents. Use when:
+- Task is well-defined and bounded
+- You want isolation (fresh context)
+- Parallel work is possible
+</overview>
+
+<agent_types>
+<writer>
+Analyzes codebase, writes tickets. May also write mail items for out-of-scope discoveries.
+
+Returns: ticket file content, any mail items created.
+</writer>
+
+<reviewer>
+Reviews ticket for completeness and accuracy. Checks claims against actual code.
+
+Returns: APPROVE or NEEDS_CHANGES with specific issues.
+</reviewer>
+
+<executor>
+Claims ticket, creates worktree, implements all phases, runs tests, submits for review.
+
+Returns: completion status, files changed, any issues encountered.
+</executor>
+</agent_types>
+
+<prompt_structure>
+```markdown
+You are [writing/reviewing/executing] a ticket for [Project]. [One sentence task].
+
+## Context Files to Read First
+
+[List of skill files and project specs]
+
+## [Ticket/Code] to [Review/Execute]
+
+Read: [path to ticket or relevant files]
+
+## Reference Code
+
+[List of source files to read before changes]
+
+## [Execution Steps / Review Criteria]
+
+[Numbered, specific instructions]
+
+## Important Notes
+
+- [Worktree name and constraints]
+- [What NOT to do: commit, remove worktree, etc.]
+
+## Return
+
+[Specific format for response]
+```
+
+Key elements:
+- Explicit file paths (no ambiguity)
+- Clear execution steps (numbered, actionable)
+- Constraints section (what not to do)
+- Return format (what you expect back)
+</prompt_structure>
+
+<prompt_preview>
+Before firing a sub-agent, show the user the full prompt:
+
+```
+Here's the prompt I'll give to the sub-agent:
+
+---
+
+[full prompt]
+
+---
+
+Ready to fire?
+```
+
+This catches missing context and allows scope adjustment.
+</prompt_preview>
+
+<review_validation>
+Never blindly accept sub-agent suggestions.
+
+1. Sub-agent returns review with issues
+2. For each issue, read the actual source file referenced
+3. Validate claim against source
+4. Mark as VALID or INVALID
+5. Only apply VALID changes
+
+This catches hallucinated issues. Expect 1-3 invalid suggestions per review.
+</review_validation>
+
+<orchestration>
+The orchestrating agent (you) manages the flow:
+
+1. Write prompt, preview with user
+2. Fire sub-agent
+3. Receive results
+4. Validate (for reviews)
+5. Apply valid changes or proceed to next step
+6. Repeat as needed
+
+You maintain continuity. Sub-agents are stateless.
+</orchestration>
+</skill>

@@ -1,0 +1,74 @@
+<skill name="skill-writing" v="1">
+<desc>Creating and refining skills - extracting patterns from practice into portable, reusable knowledge.</desc>
+
+<overview>
+Skills are teachable processes. They capture how to do something so agents can learn it. The goal is portable, dense, useful knowledge - not documentation or ceremony.
+
+See `llxml-writing.xml` for format/spec details. This skill covers the craft.
+</overview>
+
+<when_to_create>
+- A pattern has emerged from actual practice (not theory)
+- You've done the thing multiple times and it's stabilized
+- The knowledge would help future agents or sessions
+- It's distinct enough to stand alone (not just part of another skill)
+
+Not: when you think something *should* exist, or to feel organized.
+</when_to_create>
+
+<extraction>
+<from_practice>
+Observe what you actually do, then codify it. Not the other way around.
+
+Bad: "A retro should have these sections because that's proper."
+Good: "I notice when there's a bug fix, I always add a 'what was learned' section."
+
+The pattern comes first. The skill captures it.
+</from_practice>
+
+<conditional_sections>
+Some things only apply sometimes. Don't make them boilerplate.
+
+Example: "What Was Learned" only appears when there was a problem that got fixed. It earns its place - don't add it to feel thorough.
+
+Mark conditional sections as conditional. Future readers need to know when to include them.
+</conditional_sections>
+</extraction>
+
+<quality>
+<density>
+Skills should be tight. Say more with less. If you can cut 60% and lose nothing, do it.
+
+Audit after writing: what's filler? What's ceremony? What's actually load-bearing?
+</density>
+
+<portability>
+Skills get shared, vendored, read by different agents in different contexts.
+
+- No poisonous language (profanity, negativity, blame)
+- No hardcoded paths or machine-specific details
+- Neutral, direct tone
+- Self-contained (don't assume context)
+</portability>
+
+<audit_your_work>
+After writing, read it fresh. Ask:
+- Did I write from theory or practice?
+- Is anything here just because it "should" be?
+- Would this help someone who's never seen it before?
+- Is there language that shouldn't ship?
+</audit_your_work>
+</quality>
+
+<evolution>
+Skills aren't permanent. They evolve through use.
+
+- Bump version when changes are significant
+- Compress when bloated
+- Split when doing too much
+- Merge when overlap is obvious
+- Delete when obsolete
+
+A skill that never changes probably isn't being used.
+</evolution>
+</skill>
