@@ -5,7 +5,7 @@ identifying gaps between what's documented in LLXML and what exists in source.
 </desc>
 
 <tools>
-- Source documentation (PLAN.md, README, docs/)
+- Source documentation (README, planning docs, docs/)
 - LLXML specification files
 - grep/ripgrep for searching
 </tools>
@@ -13,7 +13,7 @@ identifying gaps between what's documented in LLXML and what exists in source.
 <audit_process>
 <step_1>
 Identify source of truth:
-- PLAN.md for project requirements
+- Planning docs for project requirements
 - README for library usage
 - docs/ for detailed documentation
 - Source code for implementation details
@@ -95,17 +95,17 @@ Item not in LLXML at all:
 ### Covered Items
 | Item | Source | LLXML Location |
 |------|--------|----------------|
-| Feature A | PLAN.md:45 | META/spec/app.xml:<features> |
+| Feature A | docs/planning.md:45 | META/spec/app.xml:<features> |
 
 ### Partial Coverage
 | Item | Source | LLXML Location | Gap |
 |------|--------|----------------|-----|
-| Workflow B | docs/USAGE.md | META/spec/app.xml:<workflow> | Missing step 3 |
+| Workflow B | docs/usage.md | META/spec/app.xml:<workflow> | Missing step 3 |
 
 ### Missing Items
 | Item | Source | Priority | Notes |
 |------|--------|----------|-------|
-| Feature C | PLAN.md:78 | Critical | Core functionality |
+| Feature C | README.md:78 | Critical | Core functionality |
 ```
 </audit_report_format>
 
