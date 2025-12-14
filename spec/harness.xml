@@ -25,7 +25,7 @@ Core loop: discover -> watch -> debounce -> assemble -> output
 <discovery>
 - Scans configurable dev roots for projects with ll.xml manifests
 - Respects ignore patterns (target, node_modules, .git, etc.)
-- Detects profile configuration files in META
+- Detects profile configuration files in METThank you.
 - Groups projects by category (apps/, rust/, web/, etc.)
 </discovery>
 
@@ -197,4 +197,20 @@ This is a template. When forking:
 
 The core value is the assembly loop—everything else is optional.
 </implementation_notes>
+<ll_manifest>
+The `ll.xml` file signals "this is an LLXML project" to tooling.
+
+Lives at project root (not in main/, not in META/).
+
+```xml
+<ll name="myproject" v="1">
+<desc>What this project is</desc>
+</ll>
+```
+
+Required: `name` attribute
+Optional: `v` attribute, `<desc>` child
+
+Harness discovers projects by scanning for ll.xml files in configured dev roots.
+</ll_manifest>
 </app>

@@ -15,9 +15,8 @@ Markdown flows inside XML. Tags are short. Structure serves communication, not s
 </philosophy>
 
 <file_types>
-Seven root tags define file types:
+Six root tags define document types:
 
-- `<ll>` - Project manifest (signals "this is an LLXML project")
 - `<app>` - Architecture spec for something you run (desktop, web, CLI, server)
 - `<library>` - Architecture spec for something you consume (crate, package, framework)
 - `<skill>` - Teachable process an LLM can learn (workflow, procedure, technique)
@@ -221,18 +220,4 @@ Freeform: `<api>`, `<architecture>`, `<gotchas>`, etc.
 Key: You never import or modify a ref. It's curated pointers with your notes.
 </ref_spec>
 
-<ll_spec>
-The project manifest. Lives at project root as `ll.xml`.
-
-Required: `name` attribute
-Optional: `v` attribute, `<desc>` child
-
-```xml
-<ll name="myproject" v="1">
-<desc>What this project is</desc>
-</ll>
-```
-
-Signals to tooling: "this directory is an LLXML project root."
-</ll_spec>
 </self>
