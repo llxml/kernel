@@ -1,7 +1,7 @@
 <self v="6">
 <intro>
 LLXML: "LLM XML" - A self-describing format for human-LLM communication.
-Two primitives: `<self>` (describes things) and `<skill>` (teaches processes).
+Two primitives: `<self>` (describes itself) and `<skill>` (teaches processes).
 Everything else you build using skills.
 </intro>
 

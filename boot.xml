@@ -151,7 +151,7 @@ Core context for LLXML meta-development. Boot creates this when setting up META/
 
 <what_is_llxml>
 LLXML is a self-describing format with two primitives:
-- `<self>` — describes things
+- `<self>` — describes itself
 - `<skill>` — teaches processes
 
 Everything else (document types, workflows, project structures) are skills built on these primitives. The kernel is domain-agnostic; software development is just the first application.

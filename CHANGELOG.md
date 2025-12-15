@@ -1,7 +1,10 @@
 # Changelog
 
+## v7 (2025-12-14)
+- Fixed `<self>` description: "describes itself" not "describes things"
+
 ## v6 (2025-12-14)
-- **Breaking**: Kernel reduced to two primitive types: `<self>` and `<skill>`
+- Kernel reduced to two primitive types: `<self>` and `<skill>`
 - Moved `<app>`, `<library>`, `<rules>`, `<ref>` to project-structure.xml skill
 - Renamed seed.txt → self.txt
 - Created boot.xml (first-run orientation, imperative instructions)
