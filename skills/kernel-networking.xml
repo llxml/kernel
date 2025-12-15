@@ -1,0 +1,156 @@
+<skill name="kernel-networking" v="1">
+<desc>Establishing relationships with kernels on other machines via remote skills.</desc>
+
+<overview>
+A meta-skill for cross-machine kernel coordination. Each remote relationship is captured as its own skill in `META/remotes/`. This teaches how to write those skills, not a generic protocol.
+
+The pattern: your kernel knows your environment, remote kernels know theirs. Remote skills bridge the gap — capturing addressing, capabilities, and workflows for each host.
+</overview>
+
+<critical>
+**Never delete or overwrite a kernel without explicit confirmation.**
+
+Any destructive operation on a kernel — local or remote — requires asking the user and waiting for approval. Even if the kernel is broken, even if you just created it, even if it seems obvious. This includes:
+- `rm -rf` on a kernel directory
+- Overwriting kernel files
+- Resetting a kernel to fresh state
+
+The habit must be absolute. A kernel can be accidentally wiped by a misunderstood request.
+</critical>
+
+<when_to_use>
+- You have another machine you work with regularly (laptop, server, VM)
+- You want to dispatch work to a remote kernel
+- You need to deploy code or sync state across machines
+- Cross-machine workflows have stabilized enough to document
+
+Note: Like git remotes, a "remote" kernel can be on the same machine — just another kernel in a different directory. The skill focuses on SSH hosts, but the pattern works locally too (skip SSH, use local paths).
+</when_to_use>
+
+<operations>
+Two paths to establish a remote relationship:
+
+**Deploy**: Push kernel to a new host
+1. Gather info (hostname, target dir, agent availability)
+2. Explain plan transparently, get approval
+3. Verify SSH access and prerequisites (curl, unzip)
+4. Pull seed.zip from GitHub on remote, unzip to main/
+5. Init git, commit, create stable worktree
+6. Boot remote — either via remote agent (creates META/) or manual skeleton
+7. Verify remote kernel responds (if agent available)
+8. Write remote skill locally describing the new kernel
+9. Offer two-way setup (see below)
+
+**Connect**: Document an existing kernel
+1. Identify host with already-deployed kernel
+2. Write remote skill capturing its environment and capabilities
+3. No deployment needed — just establish the relationship
+4. Offer two-way setup (see below)
+
+Choose based on whether the remote already has a kernel.
+</operations>
+
+<remote_skill_structure>
+Remote skills are freeform but should capture:
+
+- **Addressing**: hostname, SSH config, user, connection method
+- **Environment**: OS, shell, display server, kernel location
+- **Capabilities**: what it can build, run, deploy
+- **Workflows**: how to deploy, dispatch work, retrieve results
+- **Constraints**: battery, connectivity, resource limits
+
+Not a rigid schema — include what's useful for your workflows.
+</remote_skill_structure>
+
+<writing>
+Write from practice. After working with a remote a few times, patterns emerge:
+- How do you connect?
+- What commands do you run there?
+- What breaks and why?
+
+Capture those patterns. Skip what's obvious. Include what you'd forget.
+
+Variants for same host are fine: `server-deploy.xml`, `server-monitor.xml`. Split by workflow if it helps.
+</writing>
+
+<using>
+Reference remote skills during cross-machine work:
+- Check capabilities before dispatching work
+- Follow documented workflows for deployment
+- Respect constraints (battery, connectivity)
+
+Remote skills are living documents. Update when workflows change.
+</using>
+
+<two_way>
+After setting up a remote, offer two-way connection:
+
+1. Ask: "Can {remote} SSH back to this machine?"
+2. Verify with `-A` flag for agent forwarding: `ssh -A {host} "ssh {local} 'echo ok'"`
+3. If yes: "Want to set up two-way connection so {remote} can send mail back?"
+4. Explain the plan, wait for approval
+5. If they need SSH key setup, offer to help copy their public key
+6. Create `META/remotes/{local}.xml` on the remote kernel (so it knows how to reach back)
+7. Verify with a hello message:
+   - Use `nohup &` to run a detached job on remote
+   - Remote agent reads mail-workflow.xml (for filename format) and the remote skill
+   - Remote agent creates and transfers a mail item back
+   - Confirm mail arrives in local inbox
+
+Using nohup for detached execution (runs independently of SSH session):
+```bash
+ssh -A {host} "nohup bash -c 'sleep 5; source ~/.zshrc 2>/dev/null; cd {kernel_path} && echo \"Read main/skills/mail-workflow.xml first. Then read META/remotes/{local}.xml and send a hello mail to {local} kernel\" | claude --dangerously-skip-permissions' > /tmp/hello.log 2>&1 &"
+```
+
+This proves the full loop: local → remote → local.
+</two_way>
+
+<example>
+```xml
+<skill name="remote-laptop" v="1">
+<desc>How to interact with the laptop kernel</desc>
+
+<addressing>
+Host: thinkpad.local
+SSH config: uses ~/.ssh/config entry "thinkpad"
+User: alice
+</addressing>
+
+<environment>
+OS: Fedora 41
+Display: Wayland (sway)
+Shell: fish
+Kernel location: ~/dev/kernel
+</environment>
+
+<capabilities>
+- Can build Rust projects
+- Can run GUI apps (Wayland)
+- Has devtui installed
+- Can deploy to local systemd user services
+</capabilities>
+
+<workflows>
+<deploy>
+To deploy a binary to laptop:
+1. Build locally or on laptop
+2. rsync binary to laptop:~/.local/bin/
+3. SSH and restart service if needed
+</deploy>
+
+<dispatch>
+To send work to laptop kernel:
+1. Write mail item describing task
+2. Transfer to thinkpad:~/dev/kernel/META/mail/inbox/
+3. Laptop kernel processes inbox and executes
+</dispatch>
+</workflows>
+
+<constraints>
+- Battery-powered, avoid heavy builds when unplugged
+- Sometimes offline, queue work appropriately
+</constraints>
+</skill>
+```
+</example>
+</skill>

@@ -1,4 +1,4 @@
-<skill name="project-structure" v="5">
+<skill name="project-structure" v="6">
 <desc>Directory layout, worktrees, library sharing, and software document types</desc>
 
 <overview>
@@ -94,7 +94,8 @@ A harness scans configured roots for `ll.xml` manifests.
 │   ├── tickets/          # Ticket workflow directories
 │   ├── mail/             # Async message queue
 │   ├── logs/             # Development logs (devlogs)
-│   └── ctx/              # Assembled context for AI sessions
+│   ├── ctx/              # Assembled context for AI sessions
+│   └── remotes/          # Remote kernel skills (cross-machine)
 ```
 </project_layout>
 

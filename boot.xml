@@ -1,4 +1,4 @@
-<skill name="boot" v="2">
+<skill name="boot" v="3">
 <desc>First-run orientation. Read this to get started with LLXML.</desc>
 
 <instruction>
@@ -28,9 +28,10 @@ DO THIS NOW:
    Tell the user:
    "Kernel is booted. Available skills:"
    Then LIST the filenames in skills/.
-   Then ask: "What do you want to work on?"
+   Then ask: "What do you want to work on? (Or: set up a remote kernel)"
    
    When they pick something, read that skill and follow it.
+   If they want remote setup, follow the <remote_setup> section below.
    If the skill doesn't exist, offer options:
    - "I can help you write that skill"
    - "Want to see the existing skills again?"
@@ -131,6 +132,128 @@ Tell the user: "Kernel is booted. You're ready to develop."
 Note: "I've added two items to your inbox — a cleanup reminder and a prompt to create your harness."
 Then list the available skills and ask what they want to work on.
 </dev_setup>
+
+<remote_setup>
+To establish a relationship with a kernel on another machine.
+
+STEP 1: ASK OPERATION
+Ask the user: "Do you want to:
+- Deploy: Push this kernel to a new host
+- Connect: Write a skill for an existing remote kernel
+- Both: Deploy first, then connect"
+
+STEP 2: DEPLOY (if selected)
+1. Ask for target host info:
+   - Hostname or IP (or SSH config entry)
+   - Target directory (default: ~/dev/kernel)
+   - Is Claude Code available on remote? (for agent-assisted boot)
+
+2. Explain the plan:
+   "Here's what I'll do:
+   - SSH to {host} and verify access
+   - Check curl and unzip are available
+   - Pull seed.zip from GitHub and unzip to {target}
+   - [If agent available] Have remote agent complete boot
+   - [If no agent] Create minimal META/ skeleton
+   Want to change anything?"
+   
+   Wait for approval before proceeding.
+
+3. Verify SSH and prerequisites:
+   ```bash
+   ssh {host} "echo ok && which curl && which unzip"
+   ```
+   If this fails, stop and help user fix it first.
+
+4. Deploy kernel:
+   ```bash
+   ssh {host} "mkdir -p {target}/main && cd {target}/main && curl -L {seed_url} -o seed.zip && unzip seed.zip && rm seed.zip"
+   ```
+   Default seed URL: https://github.com/llxml/kernel/releases/download/seed-v9/seed-v9.zip
+   User can provide a custom URL or transfer a zip manually.
+   (This URL is updated each release — see release-workflow.xml)
+
+5. Initialize git and create stable worktree:
+   ```bash
+   ssh {host} "cd {target}/main && git init && git add -A && git commit -m 'Initial kernel import'"
+   ssh {host} "cd {target}/main && git worktree add ../stable -b stable"
+   ```
+
+6. Boot the remote kernel (create META/):
+
+   **Path A — Agent available:**
+   ```bash
+   ssh {host} "source ~/.zshrc 2>/dev/null; cd {target} && echo 'The kernel files are in main/ with git and stable worktree ready. Read main/boot.xml and create only the META/ structure.' | claude --dangerously-skip-permissions"
+   ```
+   Remote agent completes full boot (META/, templates, inbox).
+
+   **Path B — No agent:**
+   ```bash
+   ssh {host} "mkdir -p {target}/META/{tickets/{todo,in-progress,review,done},mail/{inbox,read,trash},logs,ctx,remotes,spec}"
+   ```
+   Minimal skeleton. Functional but no templates.
+
+7. Verify remote kernel:
+   If agent available, confirm it responds:
+   ```bash
+   ssh {host} "source ~/.zshrc 2>/dev/null; cd {target} && echo 'Read main/self.xml and confirm you see the LLXML kernel' | claude"
+   ```
+
+8. Proceed to Connect step.
+
+STEP 3: CONNECT
+1. Create META/remotes/ if it doesn't exist:
+   ```bash
+   mkdir -p META/remotes
+   ```
+
+2. Ask about the remote:
+   - Hostname and connection method
+   - OS and environment
+   - What it can do (build, run, deploy)
+   - Any constraints (battery, connectivity)
+
+3. Create remote skill using template below.
+
+4. Tell user: "Remote skill created at META/remotes/{name}.xml"
+
+STEP 4: TWO-WAY SETUP (optional)
+Ask: "Can {remote} SSH back to this machine?"
+
+Verify it works (use -A for agent forwarding if needed):
+```bash
+ssh -A {host} "ssh {local} 'echo ok'"
+```
+
+If yes and user wants two-way:
+1. Explain the plan:
+   "I'll create a remote skill on {remote} so it knows how to reach back here,
+   then have its agent send a hello mail to verify the loop works."
+   Wait for approval.
+
+2. If SSH key needed, offer to copy public key:
+   ```bash
+   ssh-copy-id {user}@{local}
+   ```
+   (run from remote, or help set up)
+
+3. Create remote skill on the remote kernel so it knows how to reach back:
+   ```bash
+   ssh -A {host} "mkdir -p {kernel_path}/META/remotes"
+   ```
+   Then create META/remotes/{local}.xml with local hostname, user, kernel path.
+
+4. Verify the loop with a hello message using nohup (runs detached):
+   ```bash
+   ssh -A {host} "nohup bash -c 'sleep 5; source ~/.zshrc 2>/dev/null; cd {kernel_path} && echo \"Read main/skills/mail-workflow.xml first for filename format. Then read META/remotes/{local}.xml and send a hello mail to the {local} kernel inbox at {local}:{local_kernel_path}/META/mail/inbox/\" | claude --dangerously-skip-permissions' > /tmp/hello.log 2>&1 &"
+   ```
+
+5. Watch local META/mail/inbox/ for the hello message.
+
+STEP 5: CONFIRM
+List existing remote skills in META/remotes/.
+Ask: "Want to set up another remote, or work on something else?"
+</remote_setup>
 
 <templates>
 <ll_xml>
@@ -264,5 +387,48 @@ Kickoff session for creating your harness — a context assembler for LLXML proj
 </context>
 ```
 </harness_kickoff_xml>
+
+<remote_skill_xml>
+```xml
+<skill name="remote-{name}" v="1">
+<desc>How to interact with the {name} kernel</desc>
+
+<addressing>
+Host: {hostname}
+SSH config: {ssh_entry or "direct connection"}
+User: {username}
+</addressing>
+
+<environment>
+OS: {os}
+Shell: {shell}
+Kernel location: {kernel_path}
+</environment>
+
+<capabilities>
+- {capability_1}
+- {capability_2}
+</capabilities>
+
+<workflows>
+<deploy>
+To deploy to {name}:
+1. {step}
+</deploy>
+
+<dispatch>
+To send work to {name} kernel:
+1. Write mail item describing task
+2. Transfer mail item to {host}:{kernel_path}/META/mail/inbox/
+3. Remote kernel processes inbox and executes
+</dispatch>
+</workflows>
+
+<constraints>
+- {constraint_1}
+</constraints>
+</skill>
+```
+</remote_skill_xml>
 </templates>
 </skill>

@@ -1,5 +1,17 @@
 # Changelog
 
+## v9 (2025-12-15)
+- **Kernel networking**: Deploy and connect to kernels on remote machines
+- Added `kernel-networking.xml` skill (deploy, connect, two-way setup)
+- Added `<remote_setup>` section to boot.xml for remote kernel workflows
+- Added `<remote_skill_xml>` template to boot.xml
+- Added `META/remotes/` directory for remote kernel skills
+- Updated project-structure.xml to document remotes/ (v6)
+- Updated boot.xml to v3
+- Updated self.xml to v9
+- Updated self.txt: "A self-describing system that can improve itself."
+- Two-way verified: remote agent can send mail back via nohup detached execution
+
 ## v8 (2025-12-14)
 - Rewrote README with project overview
 - Bumped self.xml to v8

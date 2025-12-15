@@ -1,4 +1,4 @@
-<self v="8">
+<self v="9">
 <intro>
 LLXML: "LLM XML" - A self-describing format for human-LLM communication.
 Two primitives: `<self>` (describes itself) and `<skill>` (teaches processes).
