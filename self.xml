@@ -1,11 +1,12 @@
-<self v="5">
+<self v="6">
 <intro>
-LLXML: "LLM XML" - A hybrid XML+Markdown format for AI-assisted development.
-This spec defines itself.
+LLXML: "LLM XML" - A self-describing format for human-LLM communication.
+Two primitives: `<self>` (describes things) and `<skill>` (teaches processes).
+Everything else you build using skills.
 </intro>
 
 <philosophy>
-Optimized for human-LLM communication during software development:
+Optimized for human-LLM communication:
 - Token efficiency: terse tags, minimal boilerplate
 - LLM comprehension: structure models parse naturally
 - Human readability: clean enough to write by hand
@@ -14,15 +15,11 @@ Optimized for human-LLM communication during software development:
 Markdown flows inside XML. Tags are short. Structure serves communication, not schema validation.
 </philosophy>
 
-<file_types>
-Six root tags define document types:
+<primitives>
+Two root types define the kernel:
 
-- `<app>` - Architecture spec for something you run (desktop, web, CLI, server)
-- `<library>` - Architecture spec for something you consume (crate, package, framework)
-- `<skill>` - Teachable process an LLM can learn (workflow, procedure, technique)
-- `<rules>` - Coding conventions and constraints (style, testing, patterns)
-- `<ref>` - External reference material you study but don't own (cloned repos, examples)
-- `<self>` - A spec that defines itself (inception)
+- `<self>` — A thing describing itself. Use for specs, definitions, anything that needs to explain what it is.
+- `<skill>` — A thing teaching a process. Use for workflows, procedures, techniques an agent can learn.
 
 All files use `name` and `v` as attributes on the root tag, with `<desc>` as the first child:
 ```xml
@@ -31,21 +28,32 @@ All files use `name` and `v` as attributes on the root tag, with `<desc>` as the
 ...
 </skill>
 ```
-</file_types>
+
+Everything else — document types, workflows, project structures — are skills you write.
+</primitives>
+
+<freeform>
+XML tags are freeform. Invent as needed. The name should imply the meaning.
+
+If a tag needs formal semantics, write a `<self>` doc for it. If it's just organizational structure, just use it.
+
+Tags like `<context>`, `<backstage>`, `<preamble>`, `<template>` work because their names are self-explanatory. No definition required.
+
+This is what makes the format extensible — two defined primitives, infinite freeform structure.
+</freeform>
 
 <versioning>
 Root tags support an optional `v` attribute for version tracking:
 
 ```xml
 <skill v="3">
-<app v="12">
+<self v="6">
 ```
 
 Rules:
 - Whole numbers only, no decimals
 - Increment when document is finalized, not during iteration
 - Optional: missing `v` attribute implies version 0
-- Soft requirement (tooling may warn, but won't fail)
 
 Bump the version after editing is complete and the document is ready for use.
 </versioning>
@@ -57,9 +65,9 @@ Terse hybrid notation for data structures:
 struct User {
     id: i64,
     name: str,
-    email?: str,           # optional (replaces Option<T>)
-    tags: str[],           # array (replaces Vec<T>)
-    metadata: str -> any,  # map (replaces HashMap<K,V>)
+    email?: str,           # optional
+    tags: str[],           # array
+    metadata: str -> any,  # map
 }
 
 enum Status {
@@ -71,103 +79,8 @@ enum Status {
 
 Primitives: str, i32, i64, u32, u64, f32, f64, bool, any, u8[]
 
-Avoid: Rust memory types (Arc, Box, Cow), newtype wrappers, language-specific collections.
+Avoid language-specific types. Keep it portable.
 </type_notation>
-
-<structure_guidelines>
-<grouping>
-Group by domain, not flat lists:
-
-```xml
-<types>
-<users>
-struct User { ... }
-struct Profile { ... }
-</users>
-<sessions>
-struct Session { ... }
-</sessions>
-</types>
-
-<features>
-<auth>
-- OAuth integration
-- Session management
-</auth>
-<messaging>
-- Real-time chat
-- File attachments
-</messaging>
-</features>
-```
-</grouping>
-
-<data_flow>
-Name each diagram:
-
-```xml
-<data_flow>
-<auth_flow>
-```mermaid
-sequenceDiagram
-    Client->>Server: login
-    Server->>Client: token
-```
-</auth_flow>
-</data_flow>
-```
-</data_flow>
-
-<code_blocks>
-In `<app>` and `<library>` specs, only:
-- Pseudo-type definitions (LLXML notation)
-- Mermaid diagrams
-
-No raw language code. Skills/rules/refs may include real code examples.
-</code_blocks>
-</structure_guidelines>
-
-<project_layout>
-LLXML projects use git worktrees:
-
-```
-project/
-├── ll.xml          # Manifest (signals "this is LLXML")
-├── main/           # Git repository (has .git/)
-├── kernel/         # Stable branch worktree (for vendoring, optional)
-├── _feature-x/     # Feature worktrees (underscore prefix)
-├── META/           # Shared dev knowledge (not in git)
-│   ├── spec/       # Architecture specs
-│   ├── skills/     # Project-specific skills
-│   ├── tickets/    # Task workflow
-│   └── logs/       # Handoff logs
-└── ctx/            # Assembled context (gitignored)
-```
-
-Key concepts:
-- **main/** is the repo, worktrees reference it
-- **META/** shared across worktrees, not shipped
-- **Source** (main/, worktrees) ships when vendored
-- **kernel/** only needed if others will vendor this project
-</project_layout>
-
-<vendoring>
-Libraries share code via kernel worktrees:
-
-```bash
-git submodule add file:///path/to/library/kernel vendor/library
-```
-
-"Publishing" = merging main to stable. Consumers get a snapshot via submodule.
-</vendoring>
-
-<unified_scanning>
-Files categorized by root tag, not path. Location determines shipping:
-- META/ = dev-time, not shipped
-- Source = shipped when vendored
-
-Rule: If it helps *build* the thing, META. If it helps *use* the thing, source.
-</unified_scanning>
 
 <styling>
 - Markdown inside XML flows naturally
@@ -180,44 +93,11 @@ Rule: If it helps *build* the thing, META. If it helps *use* the thing, source.
 <portability>
 LLXML files should be portable across machines and users:
 
-- No hardcoded absolute paths (e.g., `/home/user/dev/...`)
-- Use placeholders in documentation: `<dev-root>/`, `<project-root>/`, `<library-root>/`
-- Scripts should use environment variables with sensible defaults
-- Examples should use generic paths that readers can adapt
+- No hardcoded absolute paths
+- Use placeholders: `<dev-root>/`, `<project-root>/`
+- Examples should use generic paths readers can adapt
 
-This ensures LLXML specs and skills can be shared, vendored, and forked without modification.
+This ensures specs and skills can be shared, vendored, and forked without modification.
 </portability>
-
-<app_spec>
-Required: `name` attribute, `v` attribute, `<desc>` child
-Recommended: `<status>`, `<stack>`, `<features>`, `<types>`, `<data_flow>`, `<constraints>`
-Freeform: `<crates>`, `<api>`, `<deps>`, `<cli>`, etc.
-</app_spec>
-
-<library_spec>
-Required: `name` attribute, `v` attribute, `<desc>` child
-Recommended: `<status>`, `<stack>`, `<capabilities>`, `<types>`, `<data_flow>`, `<dist>`, `<constraints>`
-Freeform: `<macros>`, `<adapters>`, `<bindings>`, etc.
-</library_spec>
-
-<skill_spec>
-Required: `name` attribute (hyphen-case), `v` attribute, `<desc>` child (when to use)
-Optional: `<tools>`, `<allowed>`, `<steps>`
-Freeform: decision points, diagrams, examples
-</skill_spec>
-
-<rules_spec>
-Required: `name` attribute, `v` attribute, `<desc>` child
-Recommended: `<style>`, `<testing>`, `<patterns>`
-Freeform: `<async_patterns>`, `<error_handling>`, etc.
-</rules_spec>
-
-<ref_spec>
-Required: `name` attribute, `v` attribute, `<desc>` child
-Recommended: `<source>`, `<examples>`, `<patterns>`, `<notes>`
-Freeform: `<api>`, `<architecture>`, `<gotchas>`, etc.
-
-Key: You never import or modify a ref. It's curated pointers with your notes.
-</ref_spec>
 
 </self>

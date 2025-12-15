@@ -1,9 +1,72 @@
-<skill name="project-structure" v="3">
-<desc>Directory layout, worktrees, and library sharing</desc>
+<skill name="project-structure" v="4">
+<desc>Directory layout, worktrees, library sharing, and software document types</desc>
 
 <overview>
 Development is organized under dev roots containing projects grouped by type. Each project has a git repository (`main/`) with optional worktrees for parallel development. Libraries are shared via stable branches.
+
+This skill also defines the document types used in software development: `<app>`, `<library>`, `<rules>`, and `<ref>`. These extend the kernel's two primitives (`<self>`, `<skill>`) for software-specific needs.
 </overview>
+
+<document_types>
+Four root tags for software projects:
+
+- `<app>` — Architecture spec for something you run (desktop, web, CLI, server)
+- `<library>` — Architecture spec for something you consume (crate, package, framework)
+- `<rules>` — Coding conventions and constraints (style, testing, patterns)
+- `<ref>` — External reference material you study but don't own (cloned repos, examples)
+
+All use `name` and `v` attributes with `<desc>` as first child:
+```xml
+<app name="my-app" v="1">
+<desc>What it does</desc>
+...
+</app>
+```
+
+<app>
+For things you run.
+
+Required: `name`, `v`, `<desc>`
+Recommended: `<status>`, `<stack>`, `<features>`, `<types>`, `<data_flow>`, `<constraints>`
+Freeform: `<crates>`, `<api>`, `<deps>`, `<cli>`, etc.
+
+In `<app>` specs, code blocks should only contain:
+- Pseudo-type definitions (LLXML notation)
+- Mermaid diagrams
+
+No raw language code.
+</app>
+
+<library>
+For things you consume.
+
+Required: `name`, `v`, `<desc>`
+Recommended: `<status>`, `<stack>`, `<capabilities>`, `<types>`, `<data_flow>`, `<dist>`, `<constraints>`
+Freeform: `<macros>`, `<adapters>`, `<bindings>`, etc.
+
+Same code block rules as `<app>`.
+</library>
+
+<rules>
+For coding conventions.
+
+Required: `name`, `v`, `<desc>`
+Recommended: `<style>`, `<testing>`, `<patterns>`
+Freeform: `<async_patterns>`, `<error_handling>`, etc.
+
+May include real code examples.
+</rules>
+
+<ref>
+For external reference material.
+
+Required: `name`, `v`, `<desc>`
+Recommended: `<source>`, `<examples>`, `<patterns>`, `<notes>`
+Freeform: `<api>`, `<architecture>`, `<gotchas>`, etc.
+
+Key: You never import or modify a ref. It's curated pointers with your notes.
+</ref>
+</document_types>
 
 <dev_root>
 A dev root is a directory containing project categories:
@@ -31,10 +94,62 @@ A harness scans configured roots for `ll.xml` manifests.
 │   ├── tickets/          # Ticket workflow directories
 │   ├── mail/             # Async message queue
 │   ├── logs/             # Development logs (devlogs)
-│   └── reflection/       # Concept development
-└── ctx/                  # Assembled context output
+│   └── ctx/              # Assembled context for AI sessions
 ```
 </project_layout>
+
+<ctx>
+ctx/ holds assembled context files — XML files you feed to an AI to start a session.
+
+**What it is:**
+- Pre-assembled context for specific tasks
+- The "conversation starter" for AI sessions
+- Lives in META/ because it's dev-time, not shipped
+
+**How you use it:**
+1. Create a ctx file describing the task and files to read
+2. Start a session by telling the AI: "Read META/ctx/foo.xml"
+3. The AI reads the context and begins working
+
+**Boot creates starter templates:**
+- `template.xml` — blank template with placeholders
+- `cleanup-kickoff.xml` — for post-boot cleanup
+- `harness-kickoff.xml` — for creating your harness
+
+**Harness integration:**
+A harness can auto-generate ctx files based on profiles, watching your files and keeping context fresh. See harness-building.xml.
+
+**Example ctx file:**
+```xml
+<context>
+<preamble>
+Session to implement dark mode feature.
+</preamble>
+
+<task>
+1. Read the app spec
+2. Add dark mode toggle to settings
+3. Update CSS variables
+</task>
+
+<files_to_read>
+- META/loader.xml
+- META/spec/app.xml
+- main/src/settings.rs
+</files_to_read>
+</context>
+```
+
+The ctx pattern keeps your prompts organized and repeatable.
+</ctx>
+
+<unified_scanning>
+Files categorized by root tag, not path. Location determines shipping:
+- META/ = dev-time, not shipped
+- Source = shipped when vendored
+
+Rule: If it helps *build* the thing, META. If it helps *use* the thing, source.
+</unified_scanning>
 
 <worktrees>
 Git worktrees allow multiple working directories from a single repository.
@@ -61,16 +176,22 @@ git worktree remove _{name}
 </removing>
 </worktrees>
 
-<library_workflow>
+<vendoring>
+Libraries share code via stable branches:
+
+```bash
+git submodule add file://<library-root>/stable vendor/<name>
+```
+
+"Publishing" = merging main to stable. Consumers get a snapshot via submodule.
+
 <publishing>
-Libraries use a `stable` branch for vendoring. "Publishing" = merging main to stable:
 ```bash
 cd main && git checkout stable && git merge main && git checkout main
 ```
 </publishing>
 
 <consuming>
-Projects vendor from the stable branch:
 ```bash
 cd main
 git submodule add file://<library-root>/stable vendor/<name>
@@ -78,7 +199,7 @@ git submodule add file://<library-root>/stable vendor/<name>
 
 Then reference in your build config: `vendor/<name>/`
 </consuming>
-</library_workflow>
+</vendoring>
 
 <key_concepts>
 - **main/ is the repo** - Contains `.git/`, is the source of truth

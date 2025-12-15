@@ -1,5 +1,47 @@
-<app v="1">
-<name>harness</name>
+<skill name="harness-building" v="1">
+<desc>Building a context assembler for LLXML projects</desc>
+
+<overview>
+A harness watches LLXML projects, assembles context based on profiles, and outputs files for AI agent consumption. It's the bridge between your files and your agent.
+
+This skill teaches what a harness is, why you want one, and how to build one. The full spec is embedded as a template you can copy and adapt.
+</overview>
+
+<what>
+A harness is a context assembler. It:
+- Discovers projects by scanning for `ll.xml` manifests
+- Watches META directories for changes
+- Assembles context based on profiles (which files to include)
+- Outputs concatenated XML to `ctx/` for agent consumption
+
+Core loop: discover → watch → debounce → assemble → output
+</what>
+
+<why>
+Agents need context. Manually copying files into prompts doesn't scale.
+
+A harness automates this:
+- Change a file → harness rebuilds context
+- Switch profiles → different context for different tasks
+- Add a project → harness discovers it automatically
+
+You focus on the work. The harness keeps context fresh.
+</why>
+
+<how>
+1. Choose your stack (Rust, Node, Go, whatever)
+2. Implement discovery: scan dev roots for `ll.xml` files
+3. Implement watching: use your platform's file watcher
+4. Implement assembly: concatenate matched files based on profile
+5. Output to `ctx/{profile}.xml`
+
+The core value is the assembly loop. Everything else (UI, fancy features) is optional.
+</how>
+
+<template>
+Copy this spec and adapt it to your stack:
+
+<app name="harness" v="1">
 <desc>
 Template for an LLXML context assembler and development environment.
 
@@ -186,17 +228,6 @@ graph TD
 </non_goals>
 </constraints>
 
-<implementation_notes>
-This is a template. When forking:
-
-1. Choose your stack (Rust+Axum, Node+Express, Go, etc.)
-2. Implement discovery by scanning dev_roots for ll.xml
-3. Implement watching using your platform's file watcher
-4. Implement assembly by concatenating matched files
-5. Add UI if desired (web, TUI, or headless)
-
-The core value is the assembly loop—everything else is optional.
-</implementation_notes>
 <ll_manifest>
 The `ll.xml` file signals "this is an LLXML project" to tooling.
 
@@ -214,3 +245,5 @@ Optional: `v` attribute, `<desc>` child
 Harness discovers projects by scanning for ll.xml files in configured dev roots.
 </ll_manifest>
 </app>
+</template>
+</skill>

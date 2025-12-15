@@ -1,0 +1,268 @@
+<skill name="boot" v="1">
+<desc>First-run orientation. Read this to get started with LLXML.</desc>
+
+<instruction>
+PREREQUISITES:
+- Git must be installed and configured (git config user.name/email)
+
+DO THIS NOW:
+
+0. If you haven't read self.xml (in this kernel directory) yet, STOP and read it first.
+   That file defines the format. You need it before continuing.
+
+1. Check if META/ directory exists at the project root.
+
+2. IF NO META/ EXISTS:
+   Tell the user:
+   "This kernel hasn't been booted yet. I can help you:
+   - Set up the full development environment (for developing LLXML itself)
+   - Create a harness spec for your own workflow
+   Which do you want to tackle first? Or something else?"
+   
+   Wait for their response.
+   
+   FOR DEV SETUP: Read skills/project-structure.xml first, then follow the <dev_setup> section below.
+   FOR HARNESS: Read skills/harness-building.xml and follow it.
+
+3. IF META/ EXISTS:
+   Tell the user:
+   "Kernel is booted. Available skills:"
+   Then LIST the filenames in skills/.
+   Then ask: "What do you want to work on?"
+   
+   When they pick something, read that skill and follow it.
+   If the skill doesn't exist, offer options:
+   - "I can help you write that skill"
+   - "Want to see the existing skills again?"
+   - "Or we can do something else"
+
+Do not summarize this skill. Do not explain what you're going to do. Just do it.
+</instruction>
+
+<dev_setup>
+To boot the kernel into a self-developing project, you need to wrap it.
+
+STEP 1: ASK WHERE
+Ask the user: "Where do you want to set up the kernel? (default: ~/dev/kernel/)"
+Let them change it if they want.
+
+STEP 2: THE INCEPTION MOVE
+1. Create the project directory
+2. Create main/ subdirectory and initialize git:
+   ```bash
+   mkdir main && cd main && git init
+   ```
+3. Copy the kernel files into main/ (don't move — safer during setup)
+4. Commit the kernel:
+   ```bash
+   git add -A && git commit -m "Initial kernel import"
+   ```
+5. Create stable/ worktree from main:
+   ```bash
+   git worktree add ../stable -b stable
+   ```
+
+STEP 3: CREATE STRUCTURE
+Create these directories and files:
+
+```
+<project-root>/
+├── ll.xml                 # manifest (use template below)
+├── main/                  # git repo (working branch)
+│   └── [kernel files]
+├── stable/                # stable branch worktree (for distribution)
+├── META/
+│   ├── loader.xml         # core context (use template below)
+│   ├── PROMPTS.md         # session prompts (use template below)
+│   ├── tickets/
+│   │   ├── todo/
+│   │   ├── in-progress/
+│   │   ├── review/
+│   │   └── done/
+│   ├── mail/
+│   │   ├── inbox/
+│   │   ├── read/
+│   │   └── trash/
+│   ├── logs/
+│   ├── spec/              # architecture specs (<app>, <library>)
+│   └── ctx/               # assembled context for AI sessions
+│       ├── template.xml         # blank template
+│       ├── cleanup-kickoff.xml  # boot cleanup session
+│       └── harness-kickoff.xml  # harness creation session
+```
+
+STEP 4: SEED THE INBOX
+Create two mail items in META/mail/inbox/:
+
+`[DATE]-boot-cleanup.md`:
+```markdown
+# Boot Cleanup
+
+The kernel was copied (not moved) during boot setup.
+
+## Action
+Delete the original kernel files/directory that was used as the source.
+The kernel now lives in main/ — the original is no longer needed.
+
+## Context
+This is safe to do once you've verified the boot completed successfully.
+```
+
+`[DATE]-create-harness.md`:
+```markdown
+# Create Your Harness
+
+Now that the kernel is booted, you need a harness — a context assembler that watches your files and outputs context for AI agents.
+
+## Action
+Read skills/harness-building.xml and create your harness spec.
+
+## Questions to Consider
+- What do you want to call it? (default: "harness", but you could name it something memorable)
+- What stack will you build it in? (Rust, Node, Go, etc.)
+- Do you want a UI or headless?
+
+## Getting Started
+Use ctx/harness-kickoff.xml to start a session focused on this.
+```
+
+STEP 5: CONFIRM
+Tell the user: "Kernel is booted. You're ready to develop."
+Note: "I've added two items to your inbox — a cleanup reminder and a prompt to create your harness."
+Then list the available skills and ask what they want to work on.
+</dev_setup>
+
+<templates>
+<ll_xml>
+```xml
+<ll name="kernel" v="1">
+<desc>The LLXML kernel - a self-describing format for human-LLM communication</desc>
+</ll>
+```
+</ll_xml>
+
+<loader_xml>
+```xml
+<loader revision="[TODAY'S DATE]">
+
+<purpose>
+Core context for LLXML meta-development. Boot creates this when setting up META/.
+</purpose>
+
+<what_is_llxml>
+LLXML is a self-describing format with two primitives:
+- `<self>` — describes things
+- `<skill>` — teaches processes
+
+Everything else (document types, workflows, project structures) are skills built on these primitives. The kernel is domain-agnostic; software development is just the first application.
+
+Read main/self.xml for the full spec.
+</what_is_llxml>
+
+<kernel_vs_meta>
+**Kernel** (ships): self.txt, self.xml, boot.xml, skills/
+**META** (emerges): loader.xml, tickets/, logs/, mail/, ctx/, spec/
+
+The kernel is sufficient for regeneration. Given the kernel and an LLM, the entire meta-development environment can be recreated. Boot guides this process.
+</kernel_vs_meta>
+
+<origin>
+The seed (self.txt):
+```
+The language of a language that can describe and improve itself.
+Any implementation satisfying this principle is valid.
+```
+
+LLXML is one implementation. Others could exist (LLYAML, LLJSON, etc.).
+
+License: CC0 (public domain)
+</origin>
+
+<current_focus>
+Check META/tickets/in-progress/ for active work.
+Check META/mail/inbox/ for items needing attention.
+</current_focus>
+
+</loader>
+```
+</loader_xml>
+
+<prompts_md>
+```markdown
+# Prompts
+
+Copy these to start sessions.
+
+## Boot
+Read boot.xml
+
+## Continue Work
+Read META/loader.xml and check META/tickets/in-progress/ for active work.
+
+## Process Mail
+Read META/loader.xml and skills/mail-workflow.xml, then process META/mail/inbox/.
+```
+</prompts_md>
+
+<template_xml>
+```xml
+<context>
+<preamble>
+[DESCRIBE THE SESSION PURPOSE]
+</preamble>
+
+<task>
+[INSERT TASK HERE]
+</task>
+
+<files_to_read>
+- META/loader.xml
+- [ADD RELEVANT FILES]
+</files_to_read>
+</context>
+```
+</template_xml>
+
+<cleanup_kickoff_xml>
+```xml
+<context>
+<preamble>
+Clean up after boot — delete the original kernel source files.
+</preamble>
+
+<task>
+1. Verify the boot completed successfully (check main/, stable/, META/ exist)
+2. Delete the original kernel files/directory that was copied from
+3. Mark the cleanup inbox item as done
+</task>
+
+<files_to_read>
+- META/loader.xml
+- META/mail/inbox/*-boot-cleanup.md
+</files_to_read>
+</context>
+```
+</cleanup_kickoff_xml>
+
+<harness_kickoff_xml>
+```xml
+<context>
+<preamble>
+Kickoff session for creating your harness — a context assembler for LLXML projects.
+</preamble>
+
+<task>
+1. Read the harness-building skill
+2. Discuss what you want from your harness (name, stack, features)
+3. Create the harness spec in META/spec/
+</task>
+
+<files_to_read>
+- META/loader.xml
+- main/skills/harness-building.xml
+</files_to_read>
+</context>
+```
+</harness_kickoff_xml>
+</templates>
+</skill>

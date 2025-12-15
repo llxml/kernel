@@ -3,8 +3,6 @@
 
 <overview>
 Skills are teachable processes. They capture how to do something so agents can learn it. The goal is portable, dense, useful knowledge - not documentation or ceremony.
-
-See `llxml-writing.xml` for format/spec details. This skill covers the craft.
 </overview>
 
 <when_to_create>
