@@ -4,7 +4,7 @@ A self-describing format for AI-assisted development.
 
 ## Getting Started
 
-1. Download and extract [seed-v8.zip](https://github.com/llxml/kernel/releases/download/seed-v8/seed-v8.zip)
+1. Download and extract [seed-v9.zip](https://github.com/llxml/kernel/releases/download/seed-v9/seed-v9.zip)
 2. Instruct a frontier AI assistant to read `boot.xml`
 
 ## What It Is
