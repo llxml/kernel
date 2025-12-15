@@ -1,5 +1,12 @@
 # Changelog
 
+## v8 (2025-12-14)
+- Rewrote README with project overview
+- Bumped self.xml to v8
+- Bumped boot.xml to v2 (version bump missed in v7)
+- Bumped project-structure.xml to v5 (version bump missed in v6)
+- Bumped skill-writing.xml to v2 (version bump missed in v6)
+
 ## v7 (2025-12-14)
 - Fixed `<self>` description: "describes itself" not "describes things"
 

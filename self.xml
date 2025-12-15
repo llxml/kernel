@@ -1,4 +1,4 @@
-<self v="6">
+<self v="8">
 <intro>
 LLXML: "LLM XML" - A self-describing format for human-LLM communication.
 Two primitives: `<self>` (describes itself) and `<skill>` (teaches processes).
@@ -47,7 +47,7 @@ Root tags support an optional `v` attribute for version tracking:
 
 ```xml
 <skill v="3">
-<self v="6">
+<self v="8">
 ```
 
 Rules:
