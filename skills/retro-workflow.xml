@@ -1,0 +1,273 @@
+<skill name="retro-workflow" v="2">
+<desc>Backward-looking reflection that feeds into conversations. Captures what happened, produces outcomes.</desc>
+
+<overview>
+Retros are reflection on completed work - what was built, what surprised us, what decisions were made. Like inbox items, retros have frontmatter tracking status and outcomes. They flow into reflection conversations via Saddle, and out come skill updates, spec changes, tickets, or nothing.
+
+The key difference from inbox: inbox is forward-looking (what to do), retros are backward-looking (what happened).
+</overview>
+
+<structure>
+```
+META/retro/
+  20251224-1930-windows-kernel-setup.md
+  20251225-1400-theme-refactor.md
+  20251227-1100-inbox-workflow-redesign.md
+```
+
+Single flat directory. Frontmatter carries state.
+
+Filename format: `YYYYMMDD-HHMM-description.md`
+</structure>
+
+<frontmatter>
+<fresh>
+Just written:
+```yaml
+---
+status: pending
+tags: [session, cross-platform]
+---
+```
+</fresh>
+
+<reviewed_single>
+Reviewed, single outcome:
+```yaml
+---
+status: done
+reviewed_at: 2025-12-27
+outcome: skill
+outcome_ref: main/skills/kernel-networking.xml
+outcome_action: updated
+---
+```
+</reviewed_single>
+
+<reviewed_multiple>
+Reviewed, multiple outcomes:
+```yaml
+---
+status: done
+reviewed_at: 2025-12-27
+outcomes:
+  - type: skill
+    ref: main/skills/kernel-networking.xml
+    action: updated
+    notes: "Added two-way setup section"
+  - type: spec
+    ref: META/spec/saddle.xml
+    action: updated
+  - type: ticket
+    ref: META/tickets/todo/fix-ramble-linux.md
+---
+```
+</reviewed_multiple>
+
+<reviewed_none>
+Reviewed, nothing actionable:
+```yaml
+---
+status: done
+reviewed_at: 2025-12-27
+outcome: none
+notes: "Good session, no follow-ups needed"
+---
+```
+</reviewed_none>
+
+<deferred>
+Blocked or waiting:
+```yaml
+---
+status: deferred
+deferred_at: 2025-12-27
+deferred_reason: "Need more context from next session"
+tags: [blocked]
+---
+```
+</deferred>
+</frontmatter>
+
+<fields>
+<status>
+Required. One of:
+- `pending` - Not yet reviewed
+- `processing` - Currently in a reflection conversation
+- `done` - Reviewed, outcomes recorded
+- `deferred` - Blocked or postponed
+</status>
+
+<profile>
+Optional. Which Saddle profile to compile with. Typically `reflection` for retros.
+</profile>
+
+<project>
+Optional. Which project this belongs to. Resolved via Saddle's project catalog.
+</project>
+
+<tags>
+Optional. For filtering. Examples: `[session, windows]`, `[bugfix, learned]`, `[refactor, architecture]`.
+</tags>
+
+<outcome>
+Single outcome type when done:
+- `skill` - Created or updated a skill
+- `spec` - Updated app/library spec
+- `ticket` - Created follow-up ticket
+- `inbox` - Created inbox item for future
+- `none` - No artifacts needed
+</outcome>
+
+<outcome_ref>
+Path to the created artifact, if applicable.
+</outcome_ref>
+
+<outcome_action>
+For skill/spec outcomes: `created` or `updated`.
+</outcome_action>
+
+<outcomes>
+For multiple outcomes:
+```yaml
+outcomes:
+  - type: skill
+    ref: path/to/skill.xml
+    action: created | updated
+    notes: "what changed"
+  - type: ticket
+    ref: META/tickets/todo/slug.md
+```
+</outcomes>
+
+<deferred_at>
+Date when deferred.
+</deferred_at>
+
+<deferred_reason>
+Why the retro review was postponed.
+</deferred_reason>
+
+<notes>
+Optional. Free-form notes about what was decided.
+</notes>
+</fields>
+
+<lifecycle>
+1. **Write**: After significant work, create retro in `META/retro/`
+2. **Pending**: Retro sits until ready for reflection
+3. **Select**: In Saddle, select retro(s) for reflection conversation
+4. **Reflect**: Saddle compiles into reflection CTX, LLM reviews
+5. **Outcomes**: Conversation produces skill edits, spec changes, tickets, or nothing
+6. **Mark done**: Update frontmatter with outcomes
+7. **Archive**: Periodically move old retros to `META/archive/retro/`
+</lifecycle>
+
+<flow>
+```mermaid
+flowchart LR
+    Work[Complete Work] --> Write[Write Retro]
+    Write --> Pending[status: pending]
+    Pending --> Select[Select in Saddle]
+    Select --> Reflect[Reflection Conversation]
+    Reflect --> Done[status: done]
+    Done --> Archive[Archive old retros]
+```
+</flow>
+
+<when_to_write>
+- After significant work ships
+- After discovering something unexpected
+- After a session with major decisions
+- When the thinking trail needs preserving
+- After debugging a tricky problem
+
+Not: every ticket, every session, or on ceremony.
+</when_to_write>
+
+<format>
+```markdown
+---
+status: pending
+tags: [session, feature-area]
+---
+# Retrospective: Description
+
+## Summary
+One paragraph on what this session/work was about.
+
+## What We Built
+The actual accomplishments. Be specific. Call out wins.
+
+## Key Decisions
+Major choices and the reasoning behind them. The thinking trail.
+
+## Surprises
+What emerged unexpectedly. Discoveries, pivots, bugs found.
+
+## Open Threads
+Unfinished work, parked ideas, future considerations.
+
+## What Was Learned
+(Conditional - only when there was a problem that got fixed)
+What went wrong, how it was debugged, what's the takeaway.
+```
+</format>
+
+<sections>
+<summary>
+What this was about. One paragraph. Sets context for the reader.
+</summary>
+
+<what_we_built>
+Concrete accomplishments. Not "completed X" but the substance - problems solved, infrastructure created, things that emerged. Call out wins.
+</what_we_built>
+
+<key_decisions>
+Why things ended up the way they did. The debate, options considered, reasoning. Future readers need the thinking trail, not just outcomes.
+</key_decisions>
+
+<surprises>
+What you didn't expect. Came to do X, ended up building Y. Found a bug. Discovered a concept needed rethinking. Often the most valuable section.
+</surprises>
+
+<open_threads>
+Unfinished, parked, or needs future attention. Not complaints - context for whoever picks it up.
+</open_threads>
+
+<what_was_learned>
+**Conditional section.** Only include when there was a problem that got fixed.
+
+When something went wrong, got debugged, got resolved: what's the takeaway? What would have prevented it? This section earns its place - don't add it to feel thorough.
+</what_was_learned>
+</sections>
+
+<outcomes>
+What comes out of reviewing a retro:
+
+- **skill** - Pattern emerged that should be captured (new or updated)
+- **spec** - Architecture understanding changed, spec needs update
+- **ticket** - Follow-up work identified
+- **inbox** - Question or idea for future inbox item
+- **none** - Reflection complete, no artifacts needed
+
+Most retros produce nothing or one thing. Multiple outcomes means the retro covered a lot of ground.
+</outcomes>
+
+<reflection_vs_inbox>
+Two parallel flows, different directions:
+
+| Aspect | Inbox | Retro |
+|--------|-------|-------|
+| Direction | Forward-looking | Backward-looking |
+| Contains | Work to do | Work that was done |
+| Profile | kickoff | reflection |
+| Typical outcomes | tickets | skill/spec updates |
+
+Both feed into conversations. Both produce outcomes. The difference is temporal orientation.
+</reflection_vs_inbox>
+
+<tone>
+Write for someone picking up the work later. Be direct. Include the "we actually built that" moments. Capture real thinking, not sanitized summaries.
+</tone>
+</skill>

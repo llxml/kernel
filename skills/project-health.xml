@@ -1,0 +1,139 @@
+<skill name="project-health" v="2">
+<desc>Audit projects in dev roots for LLXML compliance and structural health.</desc>
+
+<overview>
+Scan dev directories for projects and check they follow LLXML conventions. Reports missing structure, outdated formats, and inconsistencies.
+</overview>
+
+<when_to_use>
+- Periodic health checks across all projects
+- After migrating a project to LLXML format
+- When onboarding a new project
+- Before major work to ensure clean state
+</when_to_use>
+
+<checks>
+<required>
+These must exist for a project to be LLXML-compliant:
+
+- `ll.xml` at project root (manifest with name, desc, type)
+- `main/` directory (git repository)
+- `META/` directory
+- `META/profiles/` with at least one profile
+- `META/spec/` with at least one spec file
+</required>
+
+<recommended>
+These should exist for full workflow support:
+
+- `META/tickets/{todo,in-progress,review,done}/`
+- `META/inbox/` (flat directory, frontmatter-driven state)
+- `META/retro/` (flat directory, frontmatter-driven state)
+- `META/profiles/` (Saddle compilation profiles)
+- `META/logs/`
+</recommended>
+
+<warnings>
+Flag these as needing attention:
+
+- Old-format files in META root (PLAN.md, OBJECTIVES.md, TODO.md, etc.)
+- Objectives directory (should use tickets)
+- Old mail directory structure (META/mail/{inbox,read,trash}/)
+- Missing stable/ branch for libraries
+- Stale worktrees (underscore dirs with no matching in-progress ticket)
+</warnings>
+</checks>
+
+<output_format>
+```
+PROJECT HEALTH REPORT
+=====================
+
+~/dev/apps/xdoc/
+  [OK] ll.xml
+  [OK] main/
+  [OK] META/profiles/  [OK] META/spec/xdoc.xml
+  [OK] META/tickets/
+  [OK] META/inbox/
+  [WARN] Stale worktree: _b/ (no matching ticket)
+
+~/dev/apps/ramble/
+  [MISSING] ll.xml
+  [MISSING] META/ctx/kickoff.xml
+  [WARN] Old format: META/PLAN.md
+  [WARN] Old format: META/OBJECTIVES.md
+
+Summary: 2 projects scanned, 1 compliant, 1 needs migration
+```
+</output_format>
+
+<steps>
+1. Identify dev roots to scan (configured in Saddle or passed as argument)
+2. For each directory with main/ or .git/:
+   - Check for ll.xml
+   - Check META/ structure
+   - Check for old-format files
+   - Check for stale worktrees
+3. Generate report grouped by project
+4. Summarize compliance status
+</steps>
+
+<script>
+```bash
+#!/bin/bash
+# Quick health check - run from dev root or pass path
+
+check_project() {
+    local dir="$1"
+    local name=$(basename "$dir")
+    local issues=0
+    
+    echo -e "\n$dir/"
+    
+    # Required
+    [[ -f "$dir/ll.xml" ]] && echo "  [OK] ll.xml" || { echo "  [MISSING] ll.xml"; ((issues++)); }
+    [[ -d "$dir/main" ]] && echo "  [OK] main/" || { echo "  [MISSING] main/"; ((issues++)); }
+    [[ -d "$dir/META/profiles" ]] && echo "  [OK] META/profiles/" || { echo "  [MISSING] META/profiles/"; ((issues++)); }
+    [[ -d "$dir/META/spec" ]] && echo "  [OK] META/spec/" || { echo "  [MISSING] META/spec/"; ((issues++)); }
+    
+    # Recommended
+    [[ -d "$dir/META/tickets" ]] && echo "  [OK] META/tickets/" || echo "  [INFO] META/tickets/ not set up"
+    [[ -d "$dir/META/inbox" ]] && echo "  [OK] META/inbox/" || echo "  [INFO] META/inbox/ not set up"
+    [[ -d "$dir/META/retro" ]] && echo "  [OK] META/retro/" || echo "  [INFO] META/retro/ not set up"
+    [[ -d "$dir/META/profiles" ]] && echo "  [OK] META/profiles/" || echo "  [INFO] META/profiles/ not set up"
+    
+    # Warnings - old format
+    for old in PLAN.md OBJECTIVES.md TODO.md BLUEPRINTS.md; do
+        [[ -f "$dir/META/$old" ]] && { echo "  [WARN] Old format: META/$old"; ((issues++)); }
+    done
+    [[ -d "$dir/META/objectives" ]] && { echo "  [WARN] Old format: META/objectives/"; ((issues++)); }
+    
+    return $issues
+}
+
+# Scan
+root="${1:-.}"
+echo "PROJECT HEALTH REPORT"
+echo "====================="
+
+compliant=0
+total=0
+
+for dir in "$root"/*/; do
+    [[ -d "$dir/main" || -d "$dir/.git" ]] || continue
+    ((total++))
+    check_project "${dir%/}"
+    [[ $? -eq 0 ]] && ((compliant++))
+done
+
+echo -e "\nSummary: $total projects scanned, $compliant compliant, $((total-compliant)) need attention"
+```
+</script>
+
+<integration>
+Can be run:
+- Manually via the script above
+- As part of a harness that watches dev roots
+- On session start to surface projects needing migration
+</integration>
+</skill>

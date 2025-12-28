@@ -1,4 +1,4 @@
-<skill name="kernel-networking" v="1">
+<skill name="kernel-networking" v="3">
 <desc>Establishing relationships with kernels on other machines via remote skills.</desc>
 
 <overview>
@@ -16,6 +16,25 @@ Any destructive operation on a kernel — local or remote — requires asking th
 - Resetting a kernel to fresh state
 
 The habit must be absolute. A kernel can be accidentally wiped by a misunderstood request.
+</critical>
+
+<critical>
+**Never SCP source code. Use git.**
+
+Source code on remote machines MUST be in a git repository with a proper remote. Never use `scp` or `rsync` to copy source files between machines. This includes:
+- Copying .rs, .ts, .py, or any source files
+- "Quick" fixes pushed via scp
+- Initial deployments without git clone
+
+SCP loses history, creates untracked drift, and makes it impossible to know what's deployed. The only acceptable use of scp/rsync for code is copying compiled binaries or data files that live outside the repo.
+
+To deploy code to a remote:
+1. Ensure the remote has git installed
+2. Clone the repo: `git clone user@host:/path/to/repo`
+3. Pull updates: `git pull`
+4. Push changes: commit locally, push, pull on remote
+
+If you find yourself writing `scp path/to/source.rs`, stop. You're doing it wrong.
 </critical>
 
 <when_to_use>
@@ -87,19 +106,19 @@ After setting up a remote, offer two-way connection:
 
 1. Ask: "Can {remote} SSH back to this machine?"
 2. Verify with `-A` flag for agent forwarding: `ssh -A {host} "ssh {local} 'echo ok'"`
-3. If yes: "Want to set up two-way connection so {remote} can send mail back?"
+3. If yes: "Want to set up two-way connection so {remote} can send inbox items back?"
 4. Explain the plan, wait for approval
 5. If they need SSH key setup, offer to help copy their public key
 6. Create `META/remotes/{local}.xml` on the remote kernel (so it knows how to reach back)
 7. Verify with a hello message:
    - Use `nohup &` to run a detached job on remote
-   - Remote agent reads mail-workflow.xml (for filename format) and the remote skill
-   - Remote agent creates and transfers a mail item back
-   - Confirm mail arrives in local inbox
+   - Remote agent reads inbox-workflow.xml (for filename format) and the remote skill
+   - Remote agent creates and transfers an inbox item back
+   - Confirm item arrives in local inbox
 
 Using nohup for detached execution (runs independently of SSH session):
 ```bash
-ssh -A {host} "nohup bash -c 'sleep 5; source ~/.zshrc 2>/dev/null; cd {kernel_path} && echo \"Read main/skills/mail-workflow.xml first. Then read META/remotes/{local}.xml and send a hello mail to {local} kernel\" | claude --dangerously-skip-permissions' > /tmp/hello.log 2>&1 &"
+ssh -A {host} "nohup bash -c 'sleep 5; source ~/.zshrc 2>/dev/null; cd {kernel_path} && echo \"Read main/skills/inbox-workflow.xml first. Then read META/remotes/{local}.xml and send a hello inbox item to {local} kernel\" | claude --dangerously-skip-permissions' > /tmp/hello.log 2>&1 &"
 ```
 
 This proves the full loop: local → remote → local.
@@ -140,8 +159,8 @@ To deploy a binary to laptop:
 
 <dispatch>
 To send work to laptop kernel:
-1. Write mail item describing task
-2. Transfer to thinkpad:~/dev/kernel/META/mail/inbox/
+1. Write inbox item describing task
+2. Transfer to thinkpad:~/dev/kernel/META/inbox/
 3. Laptop kernel processes inbox and executes
 </dispatch>
 </workflows>

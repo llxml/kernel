@@ -1,5 +1,21 @@
 # Changelog
 
+## v10 (2025-12-27)
+- **Inbox/Retro workflow overhaul**: Frontmatter-driven state replaces directory shuffling
+- Renamed `mail-workflow.xml` → `inbox-workflow.xml` (v4)
+- Renamed `retro-writing.xml` → `retro-workflow.xml` (v2)
+- Inbox/retro items now use frontmatter for status, outcomes, tags
+- Flat directories (`META/inbox/`, `META/retro/`) instead of subdirs
+- Added outcome tracking: ticket, skill, spec, inbox, none
+- Added status lifecycle: pending → processing → done/deferred
+- Updated `project-structure.xml` (v8): ll.xml schema, skills locations, profiles
+- Updated `ticket-workflow.xml` (v4): frontmatter with priority, source tracking
+- Updated `harness-building.xml` (v2): points to Saddle as reference implementation
+- Updated `kernel-networking.xml` (v3): fixed stale mail-workflow references
+- Updated `project-health.xml` (v2): checks for profiles/ instead of ctx/kickoff.xml
+- Removed orphaned `kernel/` worktree directory
+- Terminology: `mail` → `inbox` throughout
+
 ## v9 (2025-12-15)
 - **Kernel networking**: Deploy and connect to kernels on remote machines
 - Added `kernel-networking.xml` skill (deploy, connect, two-way setup)

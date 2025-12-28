@@ -1,0 +1,103 @@
+<skill name="research-spikes" v="1">
+<desc>Time-boxed exploration for problems with uncertain solutions. Spikes are research, not commitment.</desc>
+
+<overview>
+A spike is focused investigation into a problem where the solution isn't clear. You're not building a feature - you're figuring out IF and HOW to build it. Spikes have uncertain outcomes by design.
+
+Spikes live in `META/spikes/<name>/` and contain experiments, notebooks, notes, and findings. They graduate to tickets when the path is clear, or get archived when the answer is "not yet" or "no."
+</overview>
+
+<when_to_spike>
+- Solution approach is unclear (multiple options, none proven)
+- New technology or library needs evaluation
+- Performance/feasibility questions need answers
+- You'd be pioneering (no established pattern to follow)
+- The work feels like R&D, not implementation
+
+Not a spike:
+- Clear requirements, known approach → ticket
+- External code to study → ref
+- Bug to fix → ticket
+- Feature with established pattern → ticket
+</when_to_spike>
+
+<structure>
+```
+META/spikes/
+  <spike-name>/
+    README.md           # Goals, questions, current status
+    notes/              # Findings, observations, decisions
+    experiments/        # Jupyter notebooks, scripts, prototypes
+    findings.md         # Final summary (when complete)
+```
+
+The README is the living document. Update it as you learn.
+</structure>
+
+<readme_format>
+```markdown
+# Spike: <Name>
+
+## Status
+Active | Paused | Complete | Archived
+
+## Questions
+What are we trying to answer?
+- Question 1?
+- Question 2?
+
+## Constraints
+- Time budget: X hours/days
+- Must work with: existing system constraints
+- Non-goals: what we're NOT trying to solve
+
+## Findings
+Updated as we learn. Link to experiments.
+
+## Conclusion
+(When complete) What did we learn? Next steps?
+```
+</readme_format>
+
+<mindset>
+Spikes are exploration, not commitment:
+- It's okay to conclude "not ready yet"
+- It's okay to conclude "wrong approach"
+- Negative results are still results
+- Time-box aggressively - don't let spikes drift
+
+The goal is LEARNING, not shipping. A spike that saves you from building the wrong thing is a success.
+</mindset>
+
+<lifecycle>
+1. **Create**: Identify uncertain problem, create spike directory with README
+2. **Explore**: Run experiments, take notes, update README with findings
+3. **Conclude**: Write findings.md summarizing what was learned
+4. **Graduate or Archive**:
+   - Clear path forward → create ticket(s), archive spike
+   - Not ready → document why, archive spike
+   - Wrong approach → document learnings, archive spike
+
+Archived spikes stay in `META/spikes/` with `Status: Archived`. They're valuable context for future decisions.
+</lifecycle>
+
+<experiments>
+Experiments live in `experiments/` and can be:
+- Jupyter notebooks (Python exploration)
+- Standalone scripts (quick tests)
+- Minimal prototypes (proof of concept)
+- Benchmark harnesses (performance testing)
+
+These are throwaway code. They don't need to be clean. They need to answer questions.
+</experiments>
+
+<graduating>
+A spike graduates to a ticket when:
+- The approach is clear and proven
+- Dependencies and requirements are understood
+- Effort can be estimated with confidence
+- The work is now implementation, not research
+
+Create the ticket, reference the spike findings, archive the spike.
+</graduating>
+</skill>

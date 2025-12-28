@@ -1,0 +1,235 @@
+<skill name="inbox-workflow" v="4">
+<desc>Forward-looking items that feed into conversations. Flat directory, frontmatter-driven state.</desc>
+
+<overview>
+The inbox holds items needing attention - ideas, bugs, questions, requests. Each item is a markdown file with frontmatter tracking its status and outcomes. Items flow into conversations via Saddle compilation, and out of conversations come tickets, skills, specs, or more inbox items.
+
+This replaces the old mail-workflow directory shuffling with frontmatter-as-state.
+</overview>
+
+<structure>
+```
+META/inbox/
+  20251227-1030-feature-idea.md
+  20251227-1100-bug-report.md
+  20251227-1400-refactor-question.md
+```
+
+Single flat directory. No subdirectories for state. Frontmatter carries everything.
+
+Filename format: `YYYYMMDD-HHMM-slug.md`
+</structure>
+
+<frontmatter>
+<minimal>
+Fresh item, just landed:
+```yaml
+---
+status: pending
+---
+```
+</minimal>
+
+<processing>
+Selected for a conversation:
+```yaml
+---
+status: processing
+profile: kickoff
+project: myproject
+tags: [feature, ui]
+---
+```
+</processing>
+
+<done_single>
+Processed, single outcome:
+```yaml
+---
+status: done
+profile: kickoff
+project: myproject
+tags: [feature, ui]
+processed_at: 2025-12-27
+outcome: ticket
+outcome_ref: META/tickets/todo/dark-mode.md
+---
+```
+</done_single>
+
+<done_multiple>
+Processed, multiple outcomes:
+```yaml
+---
+status: done
+profile: kickoff
+project: myproject
+processed_at: 2025-12-27
+outcomes:
+  - type: ticket
+    ref: META/tickets/todo/refactor-theme.md
+  - type: skill
+    ref: main/skills/theming.xml
+    action: created
+  - type: inbox
+    ref: META/inbox/20251227-1400-followup.md
+notes: "Split into multiple pieces"
+---
+```
+</done_multiple>
+
+<done_none>
+Processed, no artifact needed:
+```yaml
+---
+status: done
+processed_at: 2025-12-27
+outcome: none
+notes: "Fixed directly, one-line change"
+---
+```
+</done_none>
+
+<deferred>
+Blocked or waiting:
+```yaml
+---
+status: deferred
+deferred_at: 2025-12-27
+deferred_reason: "Waiting for upstream release"
+tags: [blocked]
+---
+```
+</deferred>
+</frontmatter>
+
+<fields>
+<status>
+Required. One of:
+- `pending` - Not yet processed
+- `processing` - Currently in a conversation
+- `done` - Processed, has outcome
+- `deferred` - Blocked or postponed
+</status>
+
+<profile>
+Optional. Which Saddle profile to compile with. Common values: `kickoff`, `reflection`, `ticket-work`.
+</profile>
+
+<project>
+Optional. Which project this belongs to. Resolved via Saddle's project catalog.
+</project>
+
+<tags>
+Optional. Array of arbitrary tags for filtering. Examples: `[bug, ui, priority-high]`, `[feature, backend]`, `[question, blocked]`.
+</tags>
+
+<outcome>
+Set when done. Single outcome type:
+- `ticket` - Created a ticket
+- `skill` - Created or updated a skill
+- `spec` - Updated a spec file
+- `inbox` - Spawned another inbox item
+- `none` - No artifact, handled directly
+</outcome>
+
+<outcome_ref>
+Path to the created artifact, if applicable.
+</outcome_ref>
+
+<outcome_action>
+For skill/spec outcomes: `created` or `updated`.
+</outcome_action>
+
+<outcomes>
+For multiple outcomes, use array instead of single `outcome`:
+```yaml
+outcomes:
+  - type: ticket
+    ref: META/tickets/todo/slug.md
+  - type: skill
+    ref: main/skills/name.xml
+    action: created | updated
+```
+</outcomes>
+
+<notes>
+Optional. Free-form notes about what was decided.
+</notes>
+</fields>
+
+<lifecycle>
+1. **Create**: Write item to `META/inbox/YYYYMMDD-HHMM-slug.md` with `status: pending`
+2. **Select**: In Saddle, select item(s) for compilation. Status becomes `processing`.
+3. **Converse**: Saddle compiles into CTX, LLM reads and works
+4. **Resolve**: Conversation produces outcomes (or not)
+5. **Mark done**: Update frontmatter with `status: done`, outcome type, refs
+6. **Archive**: Periodically move old done items to `META/archive/inbox/`
+</lifecycle>
+
+<flow>
+```mermaid
+flowchart LR
+    Create[Create Item] --> Pending[status: pending]
+    Pending --> Select[Select in Saddle]
+    Select --> Processing[status: processing]
+    Processing --> Converse[Conversation]
+    Converse --> Done[status: done]
+    Converse --> Deferred[status: deferred]
+    Done --> Archive[Archive old items]
+```
+</flow>
+
+<outcomes>
+What comes out of processing an inbox item:
+
+- **ticket** - Work to be done, goes to `META/tickets/todo/`
+- **skill** - New or updated skill file
+- **spec** - Updates to app/library spec
+- **inbox** - New inbox item (decomposition, follow-up question)
+- **none** - Handled directly, no artifact needed
+</outcomes>
+
+<sources>
+Where inbox items come from:
+- Human notes and ideas
+- Bugs discovered during work
+- Questions that need discussion
+- Cross-project issues (bugs in vendored libs)
+- Decomposed larger items
+- Follow-ups from conversations
+</sources>
+
+<archive>
+Periodically archive old done items:
+```bash
+# Move items done more than 30 days ago
+find META/inbox -name "*.md" -mtime +30 -exec grep -l "status: done" {} \; | \
+  xargs -I {} mv {} META/archive/inbox/
+```
+
+Archive is cold storage. Items there are searchable but not shown in active views.
+</archive>
+
+<format>
+```markdown
+---
+status: pending
+---
+# Title
+
+Brief description of the item.
+
+## Context
+- Relevant background
+- Related files or systems
+- Why this matters
+
+## Questions
+- Clarifying questions if any
+- Options to consider
+```
+
+Keep items focused. One topic per item. Split if too big.
+</format>
+</skill>

@@ -1,0 +1,180 @@
+<skill name="sub-agents" v="3">
+<desc>Delegating work to sub-agents with thorough, standalone prompts.</desc>
+
+<overview>
+Sub-agents are stateless workers. They read context, execute, report back. You orchestrate - maintaining continuity across their isolated runs.
+
+The key: prompts must stand alone. A sub-agent has no memory of your session. Everything it needs goes in the prompt.
+</overview>
+
+<critical>
+**No hacks. Fix properly.**
+
+When something is broken or missing, fix it the right way. Never use workarounds, symlinks, or hacks just because a previous session did. If context files describe a hack, that's a problem to fix - not a pattern to follow.
+
+Wrong:
+- Symlinks instead of proper git submodules
+- Copying files instead of cloning repos
+- scp/rsync for source code
+- "Quick fix" that papers over the real issue
+- Presenting hacks as "options" alongside proper solutions
+
+Right:
+- Git repos with proper remotes
+- Submodules that resolve on all machines
+- Dependencies managed through package managers or git
+- Fix the root cause
+
+If something isn't set up properly on a remote machine, the first task is to set it up properly. No exceptions. No "options." There is only one way: the right way.
+
+**Remote code must be in git.**
+
+When dispatching sub-agents to work on remote machines, ensure the code is in a proper git repository. Never instruct sub-agents to use scp/rsync for source files.
+
+If the remote doesn't have a git repo set up, the sub-agent's first task is to clone it properly.
+</critical>
+
+<when_to_use>
+- Task is bounded and well-defined
+- Fresh context helps (no accumulated confusion)
+- Work can be parallelized
+- Cross-machine operations
+- You want to preview the full plan before execution
+
+Not for: quick lookups, simple edits, conversational exploration.
+</when_to_use>
+
+<prompt_anatomy>
+```markdown
+You are [doing X] for [project].
+
+## Context Files to Read First
+
+[Ordered list of LLXML files - kernel, skills, specs]
+
+## The Task
+
+[Clear description of what to accomplish]
+
+## Key Files
+
+[Specific paths to read/modify, with line numbers if relevant]
+
+## Steps
+
+[Numbered, actionable steps]
+
+## Constraints
+
+[What NOT to do - don't commit, don't push, don't delete, etc.]
+
+## Final Report
+
+[Exact format you expect back]
+```
+</prompt_anatomy>
+
+<context_files>
+Always include relevant context. Common pattern:
+
+```markdown
+## Context Files to Read First
+
+1. /path/to/llxml/main/self.xml - LLXML kernel
+2. /path/to/llxml/main/skills/[relevant-skill].xml
+3. /path/to/project/META/spec/[app].xml - App architecture
+4. /path/to/project/META/skills/[project-skill].xml - Project-specific
+```
+
+More context = better results. Don't skimp. The sub-agent starts cold.
+</context_files>
+
+<cross_machine>
+For remote work, include network details:
+
+```markdown
+## Network
+
+- Machine A: 10.x.x.x (role, OS, capabilities)
+- Machine B: 10.x.x.x (role, OS, capabilities)
+
+SSH access:
+\`\`\`bash
+export SSH_AUTH_SOCK=/path/to/agent
+ssh -A user@host "..."
+\`\`\`
+```
+
+The `-A` flag forwards your SSH agent. Sub-agents need this spelled out.
+</cross_machine>
+
+<preview_pattern>
+Always preview before firing:
+
+```
+Here's the full prompt for the sub-agent:
+
+---
+
+[complete prompt]
+
+---
+
+Ready to fire when you approve.
+```
+
+This catches missing context, wrong scope, bad assumptions. User can adjust before execution.
+</preview_pattern>
+
+<agent_types>
+<implementer>
+Creates worktree, writes code, runs tests, reports results.
+Returns: files changed, test results, issues encountered.
+</implementer>
+
+<reviewer>
+Audits code or tickets against requirements.
+Returns: APPROVED or CHANGES_REQUESTED with specifics.
+</reviewer>
+
+<investigator>
+Debugs issues, traces code paths, identifies root causes.
+Returns: root cause, affected files, proposed fix.
+</investigator>
+
+<deployer>
+Builds, copies binaries, restarts services, verifies health.
+Returns: version deployed, health check results, any errors.
+</deployer>
+
+<auditor>
+Checks status of work against tickets/requirements.
+Returns: status table, actions taken, remaining work.
+</auditor>
+</agent_types>
+
+<validation>
+Don't blindly trust results. For reviews especially:
+
+1. Sub-agent claims issue at file:line
+2. Read that file yourself
+3. Verify claim is accurate
+4. Apply only valid findings
+
+Expect occasional hallucinated issues. Validate before acting.
+</validation>
+
+<orchestration>
+You maintain continuity:
+
+1. Assess task, decide sub-agent is appropriate
+2. Write thorough prompt with all context
+3. Preview with user
+4. Fire sub-agent
+5. Receive and validate results
+6. Apply changes or iterate
+7. Move to next task
+
+Sub-agents are your hands. You're the brain.
+</orchestration>
+</skill>

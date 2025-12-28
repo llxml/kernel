@@ -1,9 +1,27 @@
-<skill name="vendor-submodules" v="3">
+<skill name="vendor-submodules" v="6">
 <desc>Managing shared library dependencies via git submodules in vendor/</desc>
 
 <overview>
 Libraries follow the standard project layout with `main/` (git repo) and `stable/` (branch for vendoring). Consumer projects add submodules pointing to the stable branch.
+
+When libraries depend on other vendorable libraries, we use the "patch trick" to avoid nested vendor conflicts. Libraries declare version requirements, consumers provide patches.
 </overview>
+
+<critical>
+**Never edit files in vendor/ directly.**
+
+The vendor/ directory contains submodules pointing to library stable branches. Edits made here will be lost or cause confusion.
+
+To do any work on a vendored library (bug fixes, features, refactors, anything):
+
+1. Go to the library's home: `cd ~/dev/rust/<library>/main`
+2. Make changes there, commit
+3. Merge to stable: `git checkout stable && git merge main && git checkout main`
+4. Update submodule in consumer: `cd consumer/main/vendor/<library> && git pull`
+5. Commit the submodule pointer update in consumer
+
+This is the only correct flow. No exceptions. If you find yourself editing `vendor/<lib>/src/foo.rs`, stop - you're in the wrong directory.
+</critical>
 
 <tools>
 - `git submodule` commands
@@ -54,7 +72,72 @@ git branch stable
 ```
 
 2. Library must be self-contained - no references to parent workspace configs or paths that won't exist when vendored.
+
+3. For shared dependencies, see `<patch_trick>` below.
 </library_requirements>
+
+<patch_trick>
+**Problem**: When library A vendors library B, and consumer C vendors both A and B, Cargo sees two copies of B and fails with "package collision in the lockfile".
+
+**Solution**: Libraries use version requirements for shared deps. Consumers provide all vendors and patch them.
+
+<library_setup>
+Libraries use version requirements for shared deps and do NOT vendor them:
+```toml
+[dependencies]
+shared_lib = "0.1"
+
+[patch.crates-io]
+shared_lib = { path = "../shared_lib/stable" }
+```
+
+During development, the library patches to sibling project paths. No vendor submodules for shared deps - this avoids nested vendor conflicts.
+
+When vendored by a consumer, the consumer's patches take precedence and the library's patch block is ignored.
+</library_setup>
+
+<consumer_setup>
+Consumer vendors everything and patches:
+```toml
+[dependencies]
+library_a = "0.1"
+shared_lib = "0.1"
+
+[patch.crates-io]
+library_a = { path = "vendor/library_a" }
+shared_lib = { path = "vendor/shared_lib" }
+```
+
+All transitive deps that are vendorable must be in the patch block.
+</consumer_setup>
+
+<why_this_works>
+- Cargo resolves all version requirements through `[patch.crates-io]`
+- Single source of truth for each dependency (consumer's vendor/)
+- No nested vendor trees
+- Libraries work standalone (main/) and when vendored (stable/)
+</why_this_works>
+
+<publishing_with_shared_deps>
+When publishing a library that uses shared deps:
+
+1. Ensure Cargo.toml uses version requirements (not paths)
+2. Do not add vendor submodules for shared deps
+3. Use `[patch.crates-io]` pointing to sibling paths for development
+4. Document which deps consumers must provide in their patch block
+
+The library's `[patch.crates-io]` block is only used during standalone development. When the library is vendored, the consumer's patches take precedence.
+</publishing_with_shared_deps>
+
+<identifying_shared_deps>
+A dep is "shared" if:
+- Multiple libraries in your ecosystem use it
+- It's vendorable (has stable branch, follows this pattern)
+- Consumers might vendor it directly
+
+Common shared deps: utility crates, protocol definitions, core abstractions.
+</identifying_shared_deps>
+</patch_trick>
 
 <publishing>
 "Publishing" = merging main to stable:
@@ -87,4 +170,37 @@ Enable git file protocol (once per machine):
 git config --global protocol.file.allow always
 ```
 </one_time_setup>
+
+<cross_machine>
+**Submodules must work on all machines.**
+
+The `file://` protocol only works on the machine where the library exists at that path. When a repo is cloned to another machine (Windows, another Linux box, CI), submodules will fail to resolve.
+
+**Never use symlinks as a workaround.** Symlinks are not submodules. They don't track versions, don't work cross-platform, and create invisible drift.
+
+**Solution**: Each machine needs the libraries cloned locally with proper git remotes.
+
+On the new machine:
+```bash
+# Clone each library from the source machine
+git clone user@source:/path/to/library/main ~/dev/rust/library/main
+cd ~/dev/rust/library/main
+git worktree add ../stable stable
+
+# Update submodule URLs to point to local paths
+cd /path/to/consumer/main
+git config submodule.vendor/library.url file:///home/user/dev/rust/library/stable
+git submodule update --init
+```
+
+The submodule URL in `.gitmodules` stays as the original `file://` path (source machine). Each machine overrides with `git config submodule.<name>.url` to point to its local clone.
+
+**Before touching vendor/ on a new machine:**
+1. Verify libraries exist locally as git repos (not copies, not symlinks)
+2. Verify each has a stable branch/worktree
+3. Configure submodule URLs to local paths
+4. Run `git submodule update --init`
+
+If libraries don't exist, clone them first. No exceptions.
+</cross_machine>
 </skill>

@@ -1,4 +1,4 @@
-<skill name="boot" v="3">
+<skill name="boot" v="4">
 <desc>First-run orientation. Read this to get started with LLXML.</desc>
 
 <instruction>
@@ -80,10 +80,7 @@ Create these directories and files:
 │   │   ├── in-progress/
 │   │   ├── review/
 │   │   └── done/
-│   ├── mail/
-│   │   ├── inbox/
-│   │   ├── read/
-│   │   └── trash/
+│   ├── inbox/
 │   ├── logs/
 │   ├── spec/              # architecture specs (<app>, <library>)
 │   └── ctx/               # assembled context for AI sessions
@@ -93,7 +90,7 @@ Create these directories and files:
 ```
 
 STEP 4: SEED THE INBOX
-Create two mail items in META/mail/inbox/:
+Create two inbox items in META/inbox/:
 
 `[DATE]-boot-cleanup.md`:
 ```markdown
@@ -169,7 +166,7 @@ STEP 2: DEPLOY (if selected)
    ```bash
    ssh {host} "mkdir -p {target}/main && cd {target}/main && curl -L {seed_url} -o seed.zip && unzip seed.zip && rm seed.zip"
    ```
-   Default seed URL: https://github.com/llxml/kernel/releases/download/seed-v9/seed-v9.zip
+   Default seed URL: https://github.com/llxml/kernel/releases/download/seed-v10/seed-v10.zip
    User can provide a custom URL or transfer a zip manually.
    (This URL is updated each release — see release-workflow.xml)
 
@@ -189,7 +186,7 @@ STEP 2: DEPLOY (if selected)
 
    **Path B — No agent:**
    ```bash
-   ssh {host} "mkdir -p {target}/META/{tickets/{todo,in-progress,review,done},mail/{inbox,read,trash},logs,ctx,remotes,spec}"
+   ssh {host} "mkdir -p {target}/META/{tickets/{todo,in-progress,review,done},inbox,retro,profiles,logs,ctx,remotes,spec}"
    ```
    Minimal skeleton. Functional but no templates.
 
@@ -228,7 +225,7 @@ ssh -A {host} "ssh {local} 'echo ok'"
 If yes and user wants two-way:
 1. Explain the plan:
    "I'll create a remote skill on {remote} so it knows how to reach back here,
-   then have its agent send a hello mail to verify the loop works."
+   then have its agent send a hello inbox item to verify the loop works."
    Wait for approval.
 
 2. If SSH key needed, offer to copy public key:
@@ -245,10 +242,10 @@ If yes and user wants two-way:
 
 4. Verify the loop with a hello message using nohup (runs detached):
    ```bash
-   ssh -A {host} "nohup bash -c 'sleep 5; source ~/.zshrc 2>/dev/null; cd {kernel_path} && echo \"Read main/skills/mail-workflow.xml first for filename format. Then read META/remotes/{local}.xml and send a hello mail to the {local} kernel inbox at {local}:{local_kernel_path}/META/mail/inbox/\" | claude --dangerously-skip-permissions' > /tmp/hello.log 2>&1 &"
+   ssh -A {host} "nohup bash -c 'sleep 5; source ~/.zshrc 2>/dev/null; cd {kernel_path} && echo \"Read main/skills/inbox-workflow.xml first for filename format. Then read META/remotes/{local}.xml and send a hello inbox item to the {local} kernel at {local}:{local_kernel_path}/META/inbox/\" | claude --dangerously-skip-permissions' > /tmp/hello.log 2>&1 &"
    ```
 
-5. Watch local META/mail/inbox/ for the hello message.
+5. Watch local META/inbox/ for the hello message.
 
 STEP 5: CONFIRM
 List existing remote skills in META/remotes/.
@@ -284,7 +281,7 @@ Read main/self.xml for the full spec.
 
 <kernel_vs_meta>
 **Kernel** (ships): self.txt, self.xml, boot.xml, skills/
-**META** (emerges): loader.xml, tickets/, logs/, mail/, ctx/, spec/
+**META** (emerges): loader.xml, tickets/, logs/, inbox/, retro/, ctx/, spec/
 
 The kernel is sufficient for regeneration. Given the kernel and an LLM, the entire meta-development environment can be recreated. Boot guides this process.
 </kernel_vs_meta>
@@ -303,7 +300,7 @@ License: CC0 (public domain)
 
 <current_focus>
 Check META/tickets/in-progress/ for active work.
-Check META/mail/inbox/ for items needing attention.
+Check META/inbox/ for items needing attention.
 </current_focus>
 
 </loader>
@@ -323,7 +320,7 @@ Read boot.xml
 Read META/loader.xml and check META/tickets/in-progress/ for active work.
 
 ## Process Mail
-Read META/loader.xml and skills/mail-workflow.xml, then process META/mail/inbox/.
+Read META/loader.xml and skills/inbox-workflow.xml, then process META/inbox/.
 ```
 </prompts_md>
 
@@ -361,7 +358,7 @@ Clean up after boot — delete the original kernel source files.
 
 <files_to_read>
 - META/loader.xml
-- META/mail/inbox/*-boot-cleanup.md
+- META/inbox/*-boot-cleanup.md
 </files_to_read>
 </context>
 ```
@@ -418,8 +415,8 @@ To deploy to {name}:
 
 <dispatch>
 To send work to {name} kernel:
-1. Write mail item describing task
-2. Transfer mail item to {host}:{kernel_path}/META/mail/inbox/
+1. Write inbox item describing task
+2. Transfer to {host}:{kernel_path}/META/inbox/
 3. Remote kernel processes inbox and executes
 </dispatch>
 </workflows>

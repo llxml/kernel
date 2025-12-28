@@ -1,249 +1,151 @@
-<skill name="harness-building" v="1">
-<desc>Building a context assembler for LLXML projects</desc>
+<skill name="harness-building" v="2">
+<desc>Understanding context compilers - what they do, why you want one, how they work.</desc>
 
 <overview>
-A harness watches LLXML projects, assembles context based on profiles, and outputs files for AI agent consumption. It's the bridge between your files and your agent.
+A harness watches LLXML projects, assembles context based on profiles and selected items, and outputs compiled CTX files that LLMs read to start sessions. It's the bridge between your files and your agent.
 
-This skill teaches what a harness is, why you want one, and how to build one. The full spec is embedded as a template you can copy and adapt.
+Saddle is the reference implementation. This skill teaches the concepts; see the Saddle spec for implementation details.
 </overview>
 
 <what>
-A harness is a context assembler. It:
+A harness is a context compiler. It:
 - Discovers projects by scanning for `ll.xml` manifests
 - Watches META directories for changes
-- Assembles context based on profiles (which files to include)
-- Outputs concatenated XML to `ctx/` for agent consumption
+- Compiles context based on profiles and selected items
+- Outputs assembled XML to `ctx/` for LLM consumption
 
-Core loop: discover → watch → debounce → assemble → output
+Core loop: discover → watch → select → compile → output
 </what>
 
 <why>
-Agents need context. Manually copying files into prompts doesn't scale.
+LLMs need context. Manually copying files into prompts doesn't scale.
 
 A harness automates this:
-- Change a file → harness rebuilds context
-- Switch profiles → different context for different tasks
-- Add a project → harness discovers it automatically
+- Change a file → harness recompiles
+- Select different items → different context
+- Switch profiles → different compilation rules
+- Add a project → harness discovers it
 
 You focus on the work. The harness keeps context fresh.
 </why>
 
-<how>
-1. Choose your stack (Rust, Node, Go, whatever)
-2. Implement discovery: scan dev roots for `ll.xml` files
-3. Implement watching: use your platform's file watcher
-4. Implement assembly: concatenate matched files based on profile
-5. Output to `ctx/{profile}.xml`
-
-The core value is the assembly loop. Everything else (UI, fancy features) is optional.
-</how>
-
-<template>
-Copy this spec and adapt it to your stack:
-
-<app name="harness" v="1">
-<desc>
-Template for an LLXML context assembler and development environment.
-
-A harness watches LLXML projects, assembles context based on profiles, and outputs
-concatenated files for AI agent consumption. This is a forkable starting point—
-adapt it to your stack and requirements.
-</desc>
-
-<workflow>
-LLM agents are the primary consumers of assembled context. Files change on disk
-from external processes (editors, agents, scripts).
-
-Core loop: discover -> watch -> debounce -> assemble -> output
-
-1. Discovery scans configured dev roots for ll.xml manifests
-2. Watcher monitors META directories for file changes
-3. Debouncer batches rapid edits (prevents excessive rebuilds)
-4. Assembler compiles context based on active profile
-5. Output written to ctx/{profile}.xml for agent consumption
-</workflow>
-
-<features>
-<discovery>
-- Scans configurable dev roots for projects with ll.xml manifests
-- Respects ignore patterns (target, node_modules, .git, etc.)
-- Detects profile configuration files in META/
-- Groups projects by category (apps/, rust/, web/, etc.)
-</discovery>
-
-<assembly>
-- Profile-based context assembly
-- Glob pattern matching for file inclusion
-- Scans META for dev-time LLXML files
-- Scans source (worktrees) for shipped LLXML files
-- Scans vendor directories for dependency LLXML files
-- Configurable vendor extraction modes
-</assembly>
-
+<concepts>
 <profiles>
-- Multiple profiles per project (init, code, full, etc.)
-- Configurable include patterns per profile
-- Shared skills/rules selection
-- Reference document inclusion
+Profiles define what gets compiled. They specify:
+- Static includes (files, skills)
+- Dynamic queries (glob, git, tickets, recent)
+- Inheritance from other profiles
+- Injection point for selected items
+
+Common profiles: `base`, `kickoff`, `reflection`, `ticket-work`
 </profiles>
 
-<watching>
-- Monitors META directories for file changes
-- Debounces rapid edits before recompilation
-- Auto-compiles affected profiles on change
-- Writes output to ctx/{profile}.xml
-</watching>
+<items>
+Items are what you select for compilation:
+- Inbox items (forward-looking)
+- Retro items (backward-looking)
 
-<worktrees>
-- Discovers all worktrees per project from ll.xml manifest
-- Main worktree: full file tree, editable
-- Stable worktree: read-only, for vendoring reference
-- Feature worktrees (_prefix): diff view against main
-</worktrees>
+User selects items + profile → harness compiles → CTX output
+</items>
 
-<tickets>
-- Ticket workflow for binding work to feature branches/worktrees
-- Directory structure: META/tickets/{todo,in-progress,review,done}/
-- Ticket filename = branch name = worktree name (with _ prefix)
-</tickets>
-</features>
+<queries>
+Dynamic queries resolved at compile time:
+- `glob` - File pattern matching
+- `tickets` - Tickets by status
+- `git` - Status, diff, log
+- `grep` - Content search
+- `recent` - Recent files by mtime
+</queries>
 
-<types>
-<config>
-struct HarnessConfig {
-    dev_roots: str[],
-    ignore_patterns: str[],
-}
+<skills>
+Skill resolution order:
+1. Project skills - `META/skills/` (dev-time) or `main/skills/` (if configured)
+2. Global skills - From projects with `skills global="true"` in ll.xml
+3. Vendor skills - From vendored dependencies in `main/vendor/`
 
-struct ProjectConfig {
-    profiles: str -> ProfileConfig,
-    settings: Settings,
-}
+Global skills typically live in `main/skills/` so they can be vendored. Project-specific skills live in `META/skills/` and don't ship.
 
-struct ProfileConfig {
-    include: str[],
-    vendor_mode: VendorMode,
-    shared: str[],
-    refs: str[],
-}
+Profiles include skills by name, resolved through this chain.
+</skills>
+</concepts>
 
-struct Settings {
-    output_dir: str,
-    prepend?: str,
-}
-
-enum VendorMode {
-    Workflow,
-    Types,
-    Full,
-    None,
-}
-</config>
-
-<discovery>
-struct DiscoveredProject {
-    name: str,
-    path: str,
-    category: str,
-    manifest: Manifest,
-    has_config: bool,
-}
-
-struct Manifest {
-    repo: str,
-    worktrees: str[],
-    meta: str,
-    ctx: str,
-}
-</discovery>
-
-<assembly>
-struct AssembledContext {
-    profile: str,
-    project: str,
-    sections: ContextSection[],
-}
-
-enum ContextSection {
-    Project { content: str },
-    Skills { content: str },
-    Rules { content: str },
-    Vendor { name: str, content: str },
-    Refs { name: str, content: str },
-}
-</assembly>
-
-<worktrees>
-struct WorktreeInfo {
-    name: str,
-    path: str,
-    kind: WorktreeKind,
-    changed_files: str[],
-}
-
-enum WorktreeKind {
-    Main,
-    Stable,
-    Feature,
-}
-</worktrees>
-</types>
-
-<data_flow>
-<discovery_flow>
+<flow>
 ```mermaid
-graph LR
-    Config[harness config] --> Roots[dev_roots]
-    Roots --> Scan[Recursive scan]
-    Scan --> Ignore[Skip ignored dirs]
-    Ignore --> Find[Find ll.xml files]
-    Find --> Projects[DiscoveredProject[]]
+flowchart TB
+    subgraph Input
+        I[Inbox Items]
+        R[Retro Items]
+    end
+
+    subgraph Compile
+        S{Select Items}
+        P[Profile]
+        C[Compiler]
+        CTX[CTX File]
+    end
+
+    subgraph Conversation
+        LLM[LLM Session]
+    end
+
+    subgraph Outcomes
+        T[Tickets]
+        SK[Skill Edits]
+        SP[Spec Changes]
+        M[More Inbox]
+    end
+
+    I --> S
+    R --> S
+    S --> P
+    P --> C
+    C --> CTX
+    CTX --> LLM
+    LLM --> T
+    LLM --> SK
+    LLM --> SP
+    LLM --> M
 ```
-</discovery_flow>
+</flow>
 
-<assembly_flow>
-```mermaid
-graph TD
-    Profile[Profile Config] --> Assembler
-    MetaFiles[META/*.xml] --> Assembler
-    SourceFiles[Source/*.xml] --> Assembler
-    VendorFiles[vendor/*/*.xml] --> Assembler
-    Assembler --> Context[AssembledContext]
-    Context --> Output[ctx/profile.xml]
-```
-</assembly_flow>
-</data_flow>
+<two_flows>
+<kickoff>
+Forward-looking: inbox → kickoff CTX → conversation → outcomes
 
-<constraints>
-<requirements>
-- File system watching capability
-- LLXML parsing (or treat as raw text)
-- Glob pattern matching
-</requirements>
+Used for: new work, processing ideas, answering questions
+</kickoff>
 
-<non_goals>
-- No real-time collaboration
-- No git operations (read-only git integration for diffs)
-- No remote sync
-</non_goals>
-</constraints>
+<reflection>
+Backward-looking: retros → reflection CTX → conversation → outcomes
 
-<ll_manifest>
-The `ll.xml` file signals "this is an LLXML project" to tooling.
+Used for: reviewing completed work, extracting patterns, updating skills
+</reflection>
 
-Lives at project root (not in main/, not in META/).
+Both flows produce the same outcome types (tickets, skills, specs, more items). The difference is temporal orientation of the input.
+</two_flows>
 
-```xml
-<ll name="myproject" v="1">
-<desc>What this project is</desc>
-</ll>
-```
+<building_one>
+If building your own harness:
 
-Required: `name` attribute
-Optional: `v` attribute, `<desc>` child
+1. **Discovery** - Scan dev roots for `ll.xml` files
+2. **Watching** - Use platform file watcher on META directories
+3. **Profile parsing** - Load and resolve profile inheritance
+4. **Query execution** - Implement glob, git, tickets, etc.
+5. **Compilation** - Assemble sections into single XML
+6. **Output** - Write to `META/ctx/{profile}.xml`
 
-Harness discovers projects by scanning for ll.xml files in configured dev roots.
-</ll_manifest>
-</app>
-</template>
+The core value is the compilation loop. UI and features are optional.
+</building_one>
+
+<reference>
+See the Saddle spec for a complete implementation:
+- `~/dev/apps/saddle/META/spec/saddle.xml`
+
+Saddle implements all concepts here plus:
+- Tauri desktop app with React frontend
+- Kanban board for tickets
+- Profile and inbox editors
+- File watching with debounce
+- Token estimation
+</reference>
 </skill>

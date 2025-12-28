@@ -1,162 +1,211 @@
-<skill name="project-structure" v="6">
-<desc>Directory layout, worktrees, library sharing, and software document types</desc>
+<skill name="project-structure" v="8">
+<desc>Directory layout, worktrees, ll.xml configuration, and document types.</desc>
 
 <overview>
-Development is organized under dev roots containing projects grouped by type. Each project has a git repository (`main/`) with optional worktrees for parallel development. Libraries are shared via stable branches.
+Development is organized under dev roots containing projects grouped by type. Each project has a git repository (`main/`) with optional worktrees for parallel development. Projects are configured via `ll.xml` manifests that Saddle discovers and uses for compilation.
 
-This skill also defines the document types used in software development: `<app>`, `<library>`, `<rules>`, and `<ref>`. These extend the kernel's two primitives (`<self>`, `<skill>`) for software-specific needs.
+This skill defines the physical layout and the document types used in software development: `<app>`, `<library>`, `<rules>`, and `<ref>`.
 </overview>
-
-<document_types>
-Four root tags for software projects:
-
-- `<app>` — Architecture spec for something you run (desktop, web, CLI, server)
-- `<library>` — Architecture spec for something you consume (crate, package, framework)
-- `<rules>` — Coding conventions and constraints (style, testing, patterns)
-- `<ref>` — External reference material you study but don't own (cloned repos, examples)
-
-All use `name` and `v` attributes with `<desc>` as first child:
-```xml
-<app name="my-app" v="1">
-<desc>What it does</desc>
-...
-</app>
-```
-
-<app>
-For things you run.
-
-Required: `name`, `v`, `<desc>`
-Recommended: `<status>`, `<stack>`, `<features>`, `<types>`, `<data_flow>`, `<constraints>`
-Freeform: `<crates>`, `<api>`, `<deps>`, `<cli>`, etc.
-
-In `<app>` specs, code blocks should only contain:
-- Pseudo-type definitions (LLXML notation)
-- Mermaid diagrams
-
-No raw language code.
-</app>
-
-<library>
-For things you consume.
-
-Required: `name`, `v`, `<desc>`
-Recommended: `<status>`, `<stack>`, `<capabilities>`, `<types>`, `<data_flow>`, `<dist>`, `<constraints>`
-Freeform: `<macros>`, `<adapters>`, `<bindings>`, etc.
-
-Same code block rules as `<app>`.
-</library>
-
-<rules>
-For coding conventions.
-
-Required: `name`, `v`, `<desc>`
-Recommended: `<style>`, `<testing>`, `<patterns>`
-Freeform: `<async_patterns>`, `<error_handling>`, etc.
-
-May include real code examples.
-</rules>
-
-<ref>
-For external reference material.
-
-Required: `name`, `v`, `<desc>`
-Recommended: `<source>`, `<examples>`, `<patterns>`, `<notes>`
-Freeform: `<api>`, `<architecture>`, `<gotchas>`, etc.
-
-Key: You never import or modify a ref. It's curated pointers with your notes.
-</ref>
-</document_types>
 
 <dev_root>
 A dev root is a directory containing project categories:
 
 ```
-<dev-root>/
+~/dev/
 ├── apps/                 # Full applications
-├── libs/                 # Shared libraries
-└── ...                   # Other project types
+├── libs/                 # Shared libraries  
+├── rust/                 # Rust-specific projects
+└── kernel/               # Personal LLXML kernel
 ```
 
-A harness scans configured roots for `ll.xml` manifests.
+Saddle scans configured dev roots for `ll.xml` manifests.
 </dev_root>
 
 <project_layout>
 ```
 <project-root>/           # Operate from here
-├── ll.xml                # Project manifest (signals "this is LLXML")
+├── ll.xml                # Project manifest and config
 ├── main/                 # THE git repository (has .git/)
-├── stable/               # Stable branch (for vendoring, optional)
+├── stable/               # Stable branch worktree (for vendoring)
 ├── _feature-x/           # Feature worktrees (underscore prefix)
-├── META/                 # Shared across worktrees, dev-time only
-│   ├── spec/             # Architecture specs (<app>, <library>)
-│   ├── skills/           # Project-specific skills
-│   ├── tickets/          # Ticket workflow directories
-│   ├── mail/             # Async message queue
-│   ├── logs/             # Development logs (devlogs)
-│   ├── ctx/              # Assembled context for AI sessions
-│   └── remotes/          # Remote kernel skills (cross-machine)
+└── META/                 # Dev-time, shared across worktrees
+    ├── spec/             # Architecture specs (<app>, <library>)
+    ├── skills/           # Project-specific skills (dev-time, not shipped)
+    ├── profiles/         # Saddle compilation profiles
+    ├── inbox/            # Forward-looking items
+    ├── retro/            # Backward-looking reflection
+    ├── ctx/              # Compiled output (build artifact)
+    ├── tickets/          # Ticket workflow directories
+    │   ├── todo/
+    │   ├── in-progress/
+    │   ├── review/
+    │   └── done/
+    ├── logs/             # Development logs
+    ├── remotes/          # Remote kernel skills
+    ├── spikes/           # Research spikes
+    ├── ref/              # External reference material
+    └── archive/          # Old inbox/retro items
+        ├── inbox/
+        └── retro/
 ```
 </project_layout>
 
-<ctx>
-ctx/ holds assembled context files — XML files you feed to an AI to start a session.
+<ll_xml>
+The `ll.xml` file is the project manifest and Saddle configuration point.
 
-**What it is:**
-- Pre-assembled context for specific tasks
-- The "conversation starter" for AI sessions
-- Lives in META/ because it's dev-time, not shipped
-
-**How you use it:**
-1. Create a ctx file describing the task and files to read
-2. Start a session by telling the AI: "Read META/ctx/foo.xml"
-3. The AI reads the context and begins working
-
-**Boot creates starter templates:**
-- `template.xml` — blank template with placeholders
-- `cleanup-kickoff.xml` — for post-boot cleanup
-- `harness-kickoff.xml` — for creating your harness
-
-**Harness integration:**
-A harness can auto-generate ctx files based on profiles, watching your files and keeping context fresh. See harness-building.xml.
-
-**Example ctx file:**
+<minimal>
 ```xml
-<context>
-<preamble>
-Session to implement dark mode feature.
-</preamble>
-
-<task>
-1. Read the app spec
-2. Add dark mode toggle to settings
-3. Update CSS variables
-</task>
-
-<files_to_read>
-- META/loader.xml
-- META/spec/app.xml
-- main/src/settings.rs
-</files_to_read>
-</context>
+<project name="myapp" v="1">
+<desc>What this project is</desc>
+</project>
 ```
+</minimal>
 
-The ctx pattern keeps your prompts organized and repeatable.
+<full>
+```xml
+<project name="kernel" v="1">
+<desc>Personal LLXML kernel</desc>
+
+<skills global="true">
+  <path>main/skills/</path>
+</skills>
+
+<profiles>
+  <path>META/profiles/</path>
+</profiles>
+
+<inbox>
+  <path>META/inbox/</path>
+</inbox>
+
+<retros>
+  <path>META/retro/</path>
+</retros>
+
+<ctx>
+  <path>META/ctx/</path>
 </ctx>
 
-<unified_scanning>
-Files categorized by root tag, not path. Location determines shipping:
-- META/ = dev-time, not shipped
-- Source = shipped when vendored
+<tickets>
+  <path>META/tickets/</path>
+</tickets>
+</project>
+```
+</full>
 
-Rule: If it helps *build* the thing, META. If it helps *use* the thing, source.
-</unified_scanning>
+<attributes>
+- `name` - Project identifier, used in frontmatter references
+- `v` - Version number
+- `skills global="true"` - This project contributes skills to global resolution
+- All paths relative to project root (where ll.xml lives)
+</attributes>
+
+Saddle discovers projects by scanning dev roots for ll.xml files. Multiple projects can contribute global skills (personal kernel, team shared, etc.).
+
+<skills_locations>
+Two places for skills:
+
+- `main/skills/` - Global/shared skills that ship with the project. Used when `skills global="true"` in ll.xml. These are vendorable.
+- `META/skills/` - Project-specific skills for dev-time only. Not shipped, not vendored.
+
+The kernel uses `main/skills/` because its skills are meant to be shared globally. Most apps use `META/skills/` for project-specific workflows.
+</skills_locations>
+</ll_xml>
+
+<ctx>
+The `META/ctx/` directory holds compiled context - build artifacts generated by Saddle.
+
+**What it is:**
+- Compiled XML files ready for LLM consumption
+- Generated from profiles + selected items
+- Regenerated automatically on file changes
+
+**What it is NOT:**
+- Hand-written context files
+- Source of truth (profiles are)
+
+**How it works:**
+1. User selects inbox/retro items in Saddle
+2. User selects a profile
+3. Saddle compiles: resolves includes, executes queries, assembles sections
+4. Output written to `META/ctx/{profile}.xml`
+5. LLM reads the compiled CTX to start session
+
+Common compiled outputs:
+- `kickoff.xml` - Session start with inbox items
+- `reflection.xml` - Retro review
+- `ticket-work.xml` - Active ticket context
+</ctx>
+
+<profiles>
+Profiles define what gets compiled into a CTX file. They live in `META/profiles/`.
+
+```xml
+<profile name="kickoff" v="1">
+<desc>Session start context</desc>
+<includes>
+  <profile>base</profile>
+</includes>
+<static>
+  <file>META/spec/app.xml</file>
+  <skill>inbox-workflow</skill>
+</static>
+<dynamic>
+  <query type="tickets" status="in-progress"/>
+  <query type="recent" path="META/logs" limit="3"/>
+</dynamic>
+<inject>
+  <tag>task</tag>
+</inject>
+</profile>
+```
+
+Profiles support inheritance via `includes`, static file/skill references, and dynamic queries resolved at compile time.
+</profiles>
+
+<document_types>
+Four root tags for software projects:
+
+<app>
+Architecture spec for something you run (desktop, web, CLI, server).
+
+Required: `name`, `v`, `<desc>`
+Recommended: `<status>`, `<stack>`, `<features>`, `<types>`, `<data_flow>`, `<constraints>`
+
+Code blocks contain only pseudo-types (LLXML notation) or mermaid diagrams. No raw language code.
+</app>
+
+<library>
+Architecture spec for something you consume (crate, package, framework).
+
+Required: `name`, `v`, `<desc>`
+Recommended: `<status>`, `<stack>`, `<capabilities>`, `<types>`, `<dist>`, `<constraints>`
+</library>
+
+<rules>
+Coding conventions and constraints.
+
+Required: `name`, `v`, `<desc>`
+Recommended: `<style>`, `<testing>`, `<patterns>`
+
+May include real code examples.
+</rules>
+
+<ref>
+External reference material you study but don't own.
+
+Required: `name`, `v`, `<desc>`
+Recommended: `<source>`, `<examples>`, `<patterns>`, `<notes>`
+
+You never import or modify a ref. It's curated pointers with your notes.
+</ref>
+</document_types>
 
 <worktrees>
 Git worktrees allow multiple working directories from a single repository.
 
-- `main/` is the **actual git repository** (contains `.git/` directory)
-- Worktrees (`_feature-x/`) are lightweight checkouts that reference `main/.git`
+- `main/` is the **actual git repository** (contains `.git/`)
+- Worktrees (`_feature-x/`) are lightweight checkouts referencing `main/.git`
 - Worktrees are ephemeral - created for tickets, removed after merge
 - `main/` is permanent - worktrees depend on it
 
@@ -165,12 +214,11 @@ From project root:
 ```bash
 cd main && git worktree add ../_{name} -b {name}
 ```
-
 Creates branch `{name}` and directory `_{name}/` with that branch checked out.
 </creating>
 
 <removing>
-After review and merge:
+After merge:
 ```bash
 git worktree remove _{name}
 ```
@@ -186,35 +234,25 @@ git submodule add file://<library-root>/stable vendor/<name>
 
 "Publishing" = merging main to stable. Consumers get a snapshot via submodule.
 
-<publishing>
-```bash
-cd main && git checkout stable && git merge main && git checkout main
-```
-</publishing>
-
-<consuming>
-```bash
-cd main
-git submodule add file://<library-root>/stable vendor/<name>
-```
-
-Then reference in your build config: `vendor/<name>/`
-</consuming>
+See vendor-submodules skill for full details.
 </vendoring>
 
 <key_concepts>
-- **main/ is the repo** - Contains `.git/`, is the source of truth
+- **ll.xml is config** - Project manifest, Saddle configuration point
+- **main/ is the repo** - Contains `.git/`, source of truth
+- **META/ is dev-time** - Not in git, shared across worktrees
+- **ctx/ is compiled** - Build artifact, not hand-written
 - **Worktrees are ephemeral** - Created for features, removed after merge
-- **META is shared** - Lives at project root, accessible from all worktrees
 - **Operate from project root** - Not from inside main/ or worktrees
-- **ll.xml is the manifest** - Signals a directory is an LLXML project
 </key_concepts>
 
 <naming_conventions>
-- Project root: `<dev-root>/<type>/<name>/`
+- Project root: `~/dev/<type>/<name>/`
 - Git repository: `<project-root>/main/`
 - Stable branch: `stable`
 - Feature worktrees: `<project-root>/_feature-name/`
 - Vendor submodule: `main/vendor/<name>/`
+- Profiles: `META/profiles/<name>.xml`
+- Compiled context: `META/ctx/<profile>.xml`
 </naming_conventions>
 </skill>
